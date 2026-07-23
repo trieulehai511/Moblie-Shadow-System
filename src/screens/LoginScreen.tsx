@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }: Props) {
                         style={styles.logoIcon}
                     />
                     <Text style={styles.title}>
-                        LOGIN<Text style={styles.cursor}>|</Text>
+                        LOGIN
                     </Text>
                 </View>
 
