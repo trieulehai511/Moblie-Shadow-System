@@ -39,7 +39,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             if (token) {
                 await AsyncStorage.setItem('token', token);
-                navigation.replace('MainApp');
+                navigation.replace('MainApp', { screen: 'DailyQuest' });
             } else {
                 Alert.alert('Error', 'Token not found in response');
             }
