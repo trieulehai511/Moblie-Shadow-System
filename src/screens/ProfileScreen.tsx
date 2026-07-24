@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../services/api';
 
@@ -79,6 +80,20 @@ export default function ProfileScreen({ navigation }: any) {
     const onRefresh = () => {
         setRefreshing(true);
         fetchProfile();
+    };
+
+    const handleCopyHunterCode = async () => {
+        if (!profile?.hunterCode) {
+            return;
+        }
+
+        try {
+            await Clipboard.setStringAsync(profile.hunterCode);
+            Alert.alert('Copied', 'Hunter ID copied to clipboard.');
+        } catch (error) {
+            console.log('Copy Hunter ID error:', error);
+            Alert.alert('Error', 'Unable to copy Hunter ID.');
+        }
     };
 
     const handleLogout = () => {
@@ -198,9 +213,23 @@ export default function ProfileScreen({ navigation }: any) {
                     <Text style={styles.description}>
                         Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
                     </Text>
-                    <Text style={styles.hunterCode}>
-                        ID: {profile?.hunterCode || 'UNASSIGNED'}
-                    </Text>
+                    <View style={styles.hunterCodeRow}>
+                        <Text style={styles.hunterCode}>
+                            ID: {profile?.hunterCode || 'UNASSIGNED'}
+                        </Text>
+                        {profile?.hunterCode ? (
+                            <TouchableOpacity
+                                style={styles.copyButton}
+                                activeOpacity={0.65}
+                                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                                accessibilityRole="button"
+                                accessibilityLabel="Copy Hunter ID"
+                                onPress={handleCopyHunterCode}
+                            >
+                                <Feather name="copy" size={16} color="#72bce0" />
+                            </TouchableOpacity>
+                        ) : null}
+                    </View>
                 </View>
 
                 <View style={styles.section}>
@@ -352,7 +381,15 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         letterSpacing: 1.2,
+    },
+    hunterCodeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginTop: 6,
+    },
+    copyButton: {
+        marginLeft: 10,
+        padding: 3,
     },
     section: {
         borderTopWidth: 1,
