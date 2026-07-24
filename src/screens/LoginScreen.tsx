@@ -34,6 +34,7 @@ export default function LoginScreen({ navigation }: Props) {
 
         setLoading(true);
         try {
+            await AsyncStorage.removeItem('token');
             const response = await api.post('/auth/login', { userName, password });
             const token = response.data?.result?.token || response.data?.token;
 
