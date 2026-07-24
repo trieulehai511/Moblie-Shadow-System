@@ -19,22 +19,9 @@ import {
     // ...
     TextStyle,
 } from 'react-native';
+import { HunterProfileResponse } from '../models/ProfileModel';
 
-interface HunterProfile {
-    userName: string;
-    hunterCode: string;
-    fullName: string;
-    age: number;
-    currentRp: number;
-    rankTier: string;
-    currentStreak: number;
-    maxStreak: number;
-    shieldCount: number;
-    strength: number;
-    agility: number;
-    vitality: number;
-    avatar?: string;
-}
+
 
 const rankStyles: Record<string, TextStyle> = {
     S: {
@@ -84,7 +71,7 @@ function AttributeCard({ icon, value, label }: AttributeCardProps) {
 }
 
 export default function ProfileScreen({ navigation }: any) {
-    const [profile, setProfile] = useState<HunterProfile | null>(null);
+    const [profile, setProfile] = useState<HunterProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
