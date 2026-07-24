@@ -15,6 +15,10 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../services/api';
+import {
+    // ...
+    TextStyle,
+} from 'react-native';
 
 interface HunterProfile {
     userName: string;
@@ -31,6 +35,33 @@ interface HunterProfile {
     vitality: number;
     avatar?: string;
 }
+
+const rankStyles: Record<string, TextStyle> = {
+    S: {
+        color: '#d8b4fe',
+        textShadowColor: 'rgba(168, 85, 247, 0.5)',
+    },
+    A: {
+        color: '#ef1010',
+        textShadowColor: 'rgba(239, 68, 68, 0.5)',
+    },
+    B: {
+        color: '#fde047',
+        textShadowColor: 'rgba(245, 158, 11, 0.5)',
+    },
+    C: {
+        color: '#20ec9b',
+        textShadowColor: 'rgba(16, 185, 129, 0.5)',
+    },
+    D: {
+        color: '#93c5fd',
+        textShadowColor: 'rgba(59, 130, 246, 0.5)',
+    },
+    E: {
+        color: '#9a6b19',
+        textShadowColor: 'rgba(110, 109, 38, 0.4)',
+    },
+};
 
 type AttributeCardProps = {
     icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -56,6 +87,10 @@ export default function ProfileScreen({ navigation }: any) {
     const [profile, setProfile] = useState<HunterProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const rank = profile?.rankTier?.trim().toUpperCase() || 'E';
+
+
 
     const fetchProfile = useCallback(async () => {
         try {
@@ -203,68 +238,69 @@ export default function ProfileScreen({ navigation }: any) {
                         <Text style={styles.summaryLabel}> Best</Text>
                     </View>
                     <View style={styles.summaryItem}>
-                        <Text style={styles.summaryValue}>{profile?.rankTier || 'E'}</Text>
+                        <Text style={[styles.summaryValue, styles.rankText, rankStyles[rank] || rankStyles.E]}>{profile?.rankTier || 'E'}</Text>
                         <Text style={styles.summaryLabel}> Rank</Text>
                     </View>
                 </View>
+     
 
-                <View style={styles.profileDetails}>
-                    <Text style={styles.fullName}>{displayName}</Text>
-                    <Text style={styles.description}>
-                        Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
+            <View style={styles.profileDetails}>
+                <Text style={styles.fullName}>{displayName}</Text>
+                <Text style={styles.description}>
+                    Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
+                </Text>
+                <View style={styles.hunterCodeRow}>
+                    <Text style={styles.hunterCode}>
+                        ID: {profile?.hunterCode || 'UNASSIGNED'}
                     </Text>
-                    <View style={styles.hunterCodeRow}>
-                        <Text style={styles.hunterCode}>
-                            ID: {profile?.hunterCode || 'UNASSIGNED'}
-                        </Text>
-                        {profile?.hunterCode ? (
-                            <TouchableOpacity
-                                style={styles.copyButton}
-                                activeOpacity={0.65}
-                                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                                accessibilityRole="button"
-                                accessibilityLabel="Copy Hunter ID"
-                                onPress={handleCopyHunterCode}
-                            >
-                                <Feather name="copy" size={16} color="#72bce0" />
-                            </TouchableOpacity>
-                        ) : null}
-                    </View>
+                    {profile?.hunterCode ? (
+                        <TouchableOpacity
+                            style={styles.copyButton}
+                            activeOpacity={0.65}
+                            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Copy Hunter ID"
+                            onPress={handleCopyHunterCode}
+                        >
+                            <Feather name="copy" size={16} color="#72bce0" />
+                        </TouchableOpacity>
+                    ) : null}
                 </View>
+            </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>COMBAT ATTRIBUTES</Text>
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>COMBAT ATTRIBUTES</Text>
 
-                    <View style={styles.attributeGrid}>
-                        <AttributeCard
-                            icon="sword-cross"
-                            value={profile?.strength ?? 0}
-                            label="STR"
-                        />
-                        <AttributeCard
-                            icon="run-fast"
-                            value={profile?.agility ?? 0}
-                            label="AGI"
-                        />
-                        <AttributeCard
-                            icon="heart-outline"
-                            value={profile?.vitality ?? 0}
-                            label="VIT"
-                        />
-                        <AttributeCard
-                            icon="shield-outline"
-                            value={profile?.shieldCount ?? 0}
-                            label="SHIELDS"
-                        />
-                    </View>
+                <View style={styles.attributeGrid}>
+                    <AttributeCard
+                        icon="sword-cross"
+                        value={profile?.strength ?? 0}
+                        label="STR"
+                    />
+                    <AttributeCard
+                        icon="run-fast"
+                        value={profile?.agility ?? 0}
+                        label="AGI"
+                    />
+                    <AttributeCard
+                        icon="heart-outline"
+                        value={profile?.vitality ?? 0}
+                        label="VIT"
+                    />
+                    <AttributeCard
+                        icon="shield-outline"
+                        value={profile?.shieldCount ?? 0}
+                        label="SHIELDS"
+                    />
                 </View>
-            </ScrollView>
-        </SafeAreaView>
+            </View>
+        </ScrollView>
+        </SafeAreaView >
     );
 }
 
 const styles = StyleSheet.create({
-    header1:{
+    header1: {
         display: 'flex',
         justifyContent: 'space-between',
         flexDirection: 'row',
@@ -282,6 +318,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#08090d',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    rankText: {
+        textShadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        textShadowRadius: 15,
     },
     loadingText: {
         color: '#8b8d96',
