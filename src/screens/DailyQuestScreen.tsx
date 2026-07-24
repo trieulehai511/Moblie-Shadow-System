@@ -21,7 +21,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { jwtDecode } from 'jwt-decode';
 import api from '../services/api';
@@ -622,7 +621,7 @@ export default function DailyQuestScreen() {
                         <Text style={styles.groupSubtitle}>{subtitle}</Text>
                     </View>
                     <Text style={bonus ? styles.bonusBadge : styles.requiredBadge}>
-                        {bonus ? 'OPTIONAL' : 'REQUIRED'}
+                        {bonus ? 'Optional' : 'Required'}
                     </Text>
                 </View>
 
@@ -646,7 +645,7 @@ export default function DailyQuestScreen() {
                                 ]}
                             >
                                 {item.completed ? (
-                                    <Feather name="check" size={14} color="#ffffff" />
+                                    <Feather name="check" size={13} color="#82b89d" />
                                 ) : (
                                     <View
                                         style={[
@@ -675,28 +674,33 @@ export default function DailyQuestScreen() {
                                 style={styles.infoButton}
                                 onPress={() => setDetailItem(item)}
                             >
-                                <Feather name="info" size={18} color="#8d919b" />
+                                <Feather name="info" size={16} color="#717680" />
                             </TouchableOpacity>
-                        </View>
 
-                        {item.completed ? (
-                            <View style={styles.doneButton}>
-                                <Feather name="check-circle" size={14} color="#9ca3af" />
-                                <Text style={styles.doneButtonText}>DONE</Text>
-                            </View>
-                        ) : (
-                            <TouchableOpacity
-                                style={styles.trainButton}
-                                onPress={() => void openWorkout(item)}
-                            >
-                                <Text style={styles.trainButtonText}>
-                                    {item.status === 'IN_PROGRESS' ||
-                                    (item.accumulatedSeconds ?? 0) > 0
-                                        ? 'RESUME'
-                                        : 'TRAIN'}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
+                            {item.completed ? (
+                                <View style={styles.doneButton}>
+                                    <Feather
+                                        name="check-circle"
+                                        size={14}
+                                        color="#82b89d"
+                                    />
+                                    <Text style={styles.doneButtonText}>DONE</Text>
+                                </View>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.trainButton}
+                                    activeOpacity={0.75}
+                                    onPress={() => void openWorkout(item)}
+                                >
+                                    <Text style={styles.trainButtonText}>
+                                        {item.status === 'IN_PROGRESS' ||
+                                        (item.accumulatedSeconds ?? 0) > 0
+                                            ? 'RESUME'
+                                            : 'TRAIN'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
                 ))}
             </View>
@@ -705,8 +709,6 @@ export default function DailyQuestScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top']}>
-            <View style={styles.ambientGlowTop} pointerEvents="none" />
-            <View style={styles.ambientGlowBottom} pointerEvents="none" />
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.content}
@@ -721,50 +723,17 @@ export default function DailyQuestScreen() {
             >
                 <View style={styles.pageHeader}>
                     <View>
-                        <View style={styles.systemLabelRow}>
-                            <View style={styles.onlineDot} />
-                            <Text style={styles.systemLabel}>SYSTEM ONLINE</Text>
-                        </View>
-                        <Text style={styles.pageTitle}>DAILY DIRECTIVE</Text>
+                        <Text style={styles.pageTitle}>Daily quest</Text>
                         <Text style={styles.pageDate}>{questDateLabel}</Text>
                     </View>
-                    <View style={styles.headerMark}>
-                        <MaterialCommunityIcons
-                            name="lightning-bolt"
-                            size={25}
-                            color="#8fd8fb"
-                        />
-                    </View>
+                    <Feather name="check-circle" size={20} color="#6f737c" />
                 </View>
 
-                <LinearGradient
-                    colors={['rgba(25,38,50,0.98)', 'rgba(14,16,22,0.98)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.statusCard}
-                >
-                    <View style={styles.cardAccentLine} />
-                    <View style={styles.statusIdentity}>
-                        <View style={styles.statusIcon}>
-                            <MaterialCommunityIcons
-                                name="sword-cross"
-                                size={26}
-                                color="#72bce0"
-                            />
-                        </View>
-                        <View>
-                            <Text style={styles.eyebrow}>CURRENT STATUS</Text>
-                            <View style={styles.levelRow}>
-                                <Text style={styles.levelText}>Level 1</Text>
-                                <Text style={styles.rankText}>[E-Rank]</Text>
-                            </View>
-                        </View>
-                    </View>
-
+                <View style={styles.statusCard}>
                     <View style={styles.progressHeader}>
-                        <Text style={styles.progressLabel}>EXP PROGRESS</Text>
+                        <Text style={styles.progressLabel}>Today</Text>
                         <Text style={styles.progressValue}>
-                            {progress}% ({completedMain}/{mainItems.length})
+                            {completedMain} of {mainItems.length}
                         </Text>
                     </View>
                     <View style={styles.progressTrack}>
@@ -777,31 +746,18 @@ export default function DailyQuestScreen() {
                     </View>
                     <Text style={styles.progressHint}>
                         {questData?.completed
-                            ? 'DAILY DIRECTIVE CLEARED'
-                            : `${Math.max(0, mainItems.length - completedMain)} MISSION${mainItems.length - completedMain === 1 ? '' : 'S'} REMAINING`}
+                            ? 'Completed'
+                            : `${Math.max(0, mainItems.length - completedMain)} remaining`}
                     </Text>
-                </LinearGradient>
+                </View>
 
-                <LinearGradient
-                    colors={['rgba(18,20,27,0.99)', 'rgba(10,11,15,0.99)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0.8, y: 1 }}
-                    style={styles.questCard}
-                >
+                <View style={styles.questCard}>
                     <View style={styles.questHeader}>
                         <View>
-                            <Text style={styles.mandatoryBadge}>! MANDATORY</Text>
-                            <Text style={styles.questTitle}>DAILY QUEST</Text>
+                            <Text style={styles.questTitle}>Exercises</Text>
                             <Text style={styles.questSubtitle}>
-                                Preparation to Become Strong
+                                Complete the required exercises for today.
                             </Text>
-                        </View>
-                        <View style={styles.questHeaderIcon}>
-                            <MaterialCommunityIcons
-                                name="dumbbell"
-                                size={28}
-                                color="#72bce0"
-                            />
                         </View>
                     </View>
 
@@ -846,19 +802,19 @@ export default function DailyQuestScreen() {
                     ) : (
                         <>
                             {renderQuestGroup(
-                                'MAIN MISSIONS',
-                                'Complete these to clear today’s quest',
+                                'Main exercises',
+                                'Required for today',
                                 mainItems
                             )}
                             {renderQuestGroup(
-                                'BONUS CHALLENGES',
-                                `${completedBonus}/${bonusItems.length} complete · Optional`,
+                                'Bonus',
+                                `${completedBonus} of ${bonusItems.length} complete`,
                                 bonusItems,
                                 true
                             )}
                         </>
                     )}
-                </LinearGradient>
+                </View>
             </ScrollView>
 
             <Modal
@@ -1244,7 +1200,7 @@ const colors = {
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },
     container: { flex: 1, backgroundColor: 'transparent' },
-    content: { padding: 16, paddingTop: 18, paddingBottom: 44, gap: 18 },
+    content: { padding: 16, paddingTop: 22, paddingBottom: 44, gap: 20 },
     ambientGlowTop: {
         position: 'absolute',
         width: 260,
@@ -1264,12 +1220,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(80, 110, 180, 0.05)',
     },
     pageHeader: {
-        minHeight: 88,
+        minHeight: 58,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 3,
-        marginBottom: 2,
+        marginBottom: 4,
     },
     systemLabelRow: {
         flexDirection: 'row',
@@ -1295,17 +1250,17 @@ const styles = StyleSheet.create({
     },
     pageTitle: {
         color: '#f8fafc',
-        fontSize: 25,
-        lineHeight: 29,
-        fontWeight: '900',
-        letterSpacing: 1.5,
+        fontSize: 30,
+        lineHeight: 35,
+        fontWeight: '700',
+        letterSpacing: -0.5,
     },
     pageDate: {
-        color: '#72bce0',
-        fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 1.4,
-        marginTop: 5,
+        color: '#747983',
+        fontSize: 12,
+        fontWeight: '500',
+        letterSpacing: 0.3,
+        marginTop: 3,
     },
     headerMark: {
         width: 48,
@@ -1333,15 +1288,10 @@ const styles = StyleSheet.create({
     },
     statusCard: {
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.22)',
-        borderRadius: 16,
-        padding: 19,
-        overflow: 'hidden',
-        shadowColor: '#000000',
-        shadowOpacity: 0.28,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 6,
+        borderColor: '#292c33',
+        backgroundColor: '#101116',
+        borderRadius: 10,
+        padding: 15,
     },
     cardAccentLine: {
         position: 'absolute',
@@ -1379,52 +1329,40 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
     progressLabel: {
-        color: colors.muted,
-        fontSize: 10,
-        fontWeight: '700',
-        letterSpacing: 0.8,
+        color: '#d8dbe0',
+        fontSize: 13,
+        fontWeight: '600',
     },
-    progressValue: { color: colors.muted, fontSize: 11, fontWeight: '700' },
+    progressValue: { color: '#777c85', fontSize: 12, fontWeight: '500' },
     progressTrack: {
-        height: 9,
-        borderRadius: 5,
-        backgroundColor: 'rgba(3,5,8,0.82)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#252830',
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        borderRadius: 4,
-        backgroundColor: colors.accent,
+        borderRadius: 2,
+        backgroundColor: '#8b929c',
     },
     progressHint: {
-        color: '#65717d',
-        fontSize: 8,
-        fontWeight: '900',
-        letterSpacing: 1.2,
+        color: '#626771',
+        fontSize: 10,
+        fontWeight: '500',
         textAlign: 'right',
-        marginTop: 8,
+        marginTop: 7,
     },
     questCard: {
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.09)',
-        borderRadius: 16,
-        padding: 17,
-        shadowColor: '#000000',
-        shadowOpacity: 0.24,
-        shadowRadius: 16,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 5,
+        paddingTop: 2,
     },
     questHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        paddingBottom: 16,
-        marginBottom: 20,
+        borderBottomColor: '#292c33',
+        paddingBottom: 15,
+        marginBottom: 22,
     },
     questHeaderIcon: {
         width: 50,
@@ -1452,11 +1390,11 @@ const styles = StyleSheet.create({
     },
     questTitle: {
         color: colors.text,
-        fontSize: 27,
-        fontWeight: '900',
-        letterSpacing: 1.1,
+        fontSize: 20,
+        fontWeight: '700',
+        letterSpacing: -0.2,
     },
-    questSubtitle: { color: colors.muted, fontSize: 13, marginTop: 3 },
+    questSubtitle: { color: '#777c85', fontSize: 12, marginTop: 5 },
     errorBox: {
         flexDirection: 'row',
         backgroundColor: 'rgba(248,113,113,0.08)',
@@ -1466,7 +1404,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     errorText: { flex: 1, color: '#fca5a5', fontSize: 12, lineHeight: 17 },
-    questGroup: { marginBottom: 22 },
+    questGroup: { marginBottom: 26 },
     bonusGroup: {
         borderTopWidth: 1,
         borderTopColor: colors.border,
@@ -1482,111 +1420,115 @@ const styles = StyleSheet.create({
     groupHeaderText: { flex: 1, marginRight: 10 },
     groupTitle: {
         color: colors.text,
-        fontSize: 15,
-        fontWeight: '900',
-        letterSpacing: 0.7,
+        fontSize: 14,
+        fontWeight: '600',
     },
-    groupSubtitle: { color: colors.muted, fontSize: 10, marginTop: 3 },
+    groupSubtitle: { color: '#686d76', fontSize: 11, marginTop: 4 },
     requiredBadge: {
-        color: colors.accent,
-        borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.35)',
-        borderRadius: 20,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        fontSize: 9,
-        fontWeight: '800',
-        letterSpacing: 0.5,
+        color: '#777c85',
+        fontSize: 10,
+        fontWeight: '500',
     },
     bonusBadge: {
-        color: colors.bonus,
-        borderWidth: 1,
-        borderColor: 'rgba(251,191,36,0.35)',
-        borderRadius: 20,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        fontSize: 9,
-        fontWeight: '800',
-        letterSpacing: 0.5,
+        color: '#8a8067',
+        fontSize: 10,
+        fontWeight: '500',
     },
     questItem: {
-        backgroundColor: 'rgba(10,12,17,0.88)',
+        minHeight: 68,
+        backgroundColor: '#0f1014',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.09)',
-        borderRadius: 12,
-        padding: 13,
-        marginBottom: 11,
-        shadowColor: '#000000',
-        shadowOpacity: 0.16,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 2,
-    },
-    questItemPending: { borderLeftWidth: 3, borderLeftColor: colors.accent },
-    questItemBonus: { borderLeftWidth: 3, borderLeftColor: colors.bonus },
-    questItemComplete: { opacity: 0.62, borderLeftWidth: 3, borderLeftColor: '#60636c' },
-    questItemMain: { flexDirection: 'row', alignItems: 'center' },
-    stateIcon: {
-        width: 28,
-        height: 28,
+        borderColor: '#272a31',
         borderRadius: 9,
+        paddingHorizontal: 12,
+        paddingVertical: 11,
+        marginBottom: 9,
+    },
+    questItemPending: {},
+    questItemBonus: {},
+    questItemComplete: {
+        backgroundColor: 'rgba(99, 158, 124, 0.055)',
+        borderColor: 'rgba(99, 158, 124, 0.22)',
+    },
+    questItemMain: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        minHeight: 44,
+    },
+    stateIcon: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: colors.accent,
-        backgroundColor: 'rgba(114,188,224,0.06)',
+        borderColor: '#5d626c',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
+        marginRight: 12,
     },
-    stateIconComplete: { borderColor: '#747780', backgroundColor: '#35373e' },
+    stateIconComplete: {
+        borderColor: 'rgba(130,184,157,0.55)',
+        backgroundColor: 'rgba(130,184,157,0.08)',
+    },
     pendingDot: {
-        width: 7,
-        height: 7,
-        borderRadius: 4,
-        backgroundColor: colors.accent,
+        width: 5,
+        height: 5,
+        borderRadius: 3,
+        backgroundColor: '#777d87',
     },
     bonusDot: { backgroundColor: colors.bonus },
     exerciseTextBlock: { flex: 1 },
-    exerciseName: { color: colors.text, fontSize: 14, fontWeight: '700' },
-    exerciseTarget: {
-        color: colors.muted,
-        fontSize: 10,
-        fontWeight: '700',
-        letterSpacing: 0.6,
-        marginTop: 4,
+    exerciseName: {
+        color: '#e5e7eb',
+        fontSize: 15,
+        lineHeight: 19,
+        fontWeight: '600',
     },
-    completedText: { textDecorationLine: 'line-through', color: colors.muted },
-    infoButton: { padding: 7, marginLeft: 5 },
+    exerciseTarget: {
+        color: '#666b74',
+        fontSize: 11,
+        fontWeight: '500',
+        marginTop: 5,
+    },
+    completedText: {
+        textDecorationLine: 'line-through',
+        color: '#858b94',
+    },
+    infoButton: {
+        width: 32,
+        height: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 3,
+    },
     trainButton: {
-        alignSelf: 'flex-end',
-        backgroundColor: colors.accent,
-        borderRadius: 8,
-        paddingHorizontal: 20,
-        paddingVertical: 9,
-        marginTop: 12,
-        shadowColor: colors.accent,
-        shadowOpacity: 0.2,
-        shadowRadius: 7,
-        elevation: 3,
+        minWidth: 78,
+        height: 36,
+        borderRadius: 7,
+        backgroundColor: '#d9dce1',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 5,
     },
     trainButtonText: {
-        color: '#071017',
+        color: '#17191e',
         fontSize: 11,
-        fontWeight: '900',
-        letterSpacing: 0.7,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
     doneButton: {
-        alignSelf: 'flex-end',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: 6,
-        marginTop: 12,
-        paddingVertical: 5,
+        minWidth: 70,
+        height: 36,
+        marginLeft: 5,
     },
     doneButtonText: {
-        color: '#9ca3af',
+        color: '#82b89d',
         fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 0.6,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
     emptyState: { alignItems: 'center', paddingVertical: 28 },
     emptyIcon: {
@@ -1643,10 +1585,10 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         width: '100%',
-        backgroundColor: colors.surfaceRaised,
+        backgroundColor: '#111216',
         borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 14,
+        borderColor: '#2b2e35',
+        borderRadius: 10,
         padding: 20,
     },
     closeButton: {
@@ -1658,23 +1600,18 @@ const styles = StyleSheet.create({
     },
     categoryBadge: {
         alignSelf: 'flex-start',
-        color: colors.accent,
-        backgroundColor: 'rgba(114,188,224,0.09)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
-        fontSize: 9,
-        fontWeight: '900',
-        letterSpacing: 0.8,
+        color: '#757a84',
+        fontSize: 10,
+        fontWeight: '600',
     },
     modalTitle: {
         color: colors.text,
-        fontSize: 26,
-        fontWeight: '900',
+        fontSize: 24,
+        fontWeight: '700',
         marginTop: 10,
     },
     modalTarget: { color: colors.muted, fontSize: 13, marginTop: 5, marginBottom: 20 },
-    accentText: { color: colors.accent, fontWeight: '800' },
+    accentText: { color: '#b6bac2', fontWeight: '600' },
     detailImage: {
         width: '100%',
         height: 180,
@@ -1683,10 +1620,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     detailHeading: {
-        color: colors.text,
+        color: '#bfc2c8',
         fontSize: 11,
-        fontWeight: '900',
-        letterSpacing: 0.9,
+        fontWeight: '600',
         marginBottom: 7,
         marginTop: 4,
     },
@@ -1737,16 +1673,16 @@ const styles = StyleSheet.create({
         marginBottom: 9,
     },
     paceOptionActive: {
-        borderColor: colors.accent,
-        backgroundColor: 'rgba(114,188,224,0.07)',
+        borderColor: '#656b75',
+        backgroundColor: 'rgba(255,255,255,0.03)',
     },
     paceText: { flex: 1, marginLeft: 12 },
-    paceTitle: { color: colors.text, fontSize: 13, fontWeight: '900' },
+    paceTitle: { color: colors.text, fontSize: 13, fontWeight: '600' },
     paceSubtitle: { color: colors.muted, fontSize: 11, marginTop: 2 },
     primaryButton: {
         height: 46,
         borderRadius: 7,
-        backgroundColor: colors.accent,
+        backgroundColor: '#d7d9dd',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1756,8 +1692,7 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: '#071017',
         fontSize: 12,
-        fontWeight: '900',
-        letterSpacing: 0.8,
+        fontWeight: '700',
     },
     timerSection: { alignItems: 'stretch' },
     phaseRow: {
@@ -1766,59 +1701,53 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     phaseBadge: {
-        color: colors.accent,
-        backgroundColor: 'rgba(114,188,224,0.1)',
-        borderRadius: 4,
-        paddingHorizontal: 9,
-        paddingVertical: 5,
+        color: '#aeb2ba',
         fontSize: 10,
-        fontWeight: '900',
-        letterSpacing: 0.8,
+        fontWeight: '600',
     },
-    restBadge: { color: '#6ee7b7', backgroundColor: 'rgba(16,185,129,0.1)' },
+    restBadge: { color: '#84998f' },
     setText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
     timerCircle: {
         width: 190,
         height: 190,
         borderRadius: 95,
-        borderWidth: 5,
-        borderColor: colors.accent,
+        borderWidth: 2,
+        borderColor: '#555b65',
         alignSelf: 'center',
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 25,
         backgroundColor: '#0a0b0f',
     },
-    timerCircleRest: { borderColor: '#6ee7b7' },
+    timerCircleRest: { borderColor: '#667d72' },
     timerValue: {
         color: colors.text,
         fontSize: 48,
-        fontWeight: '900',
+        fontWeight: '700',
         letterSpacing: 1,
     },
     timerLabel: {
         color: colors.muted,
         fontSize: 10,
-        fontWeight: '900',
-        letterSpacing: 1.4,
+        fontWeight: '600',
+        letterSpacing: 0.8,
         marginTop: 3,
     },
     savingStatus: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.2)',
-        backgroundColor: 'rgba(114,188,224,0.06)',
+        borderColor: '#30343b',
+        backgroundColor: 'rgba(255,255,255,0.02)',
         borderRadius: 9,
         paddingHorizontal: 14,
         paddingVertical: 12,
     },
     savingStatusText: { marginLeft: 11 },
     savingTitle: {
-        color: colors.accent,
+        color: '#b8bcc4',
         fontSize: 10,
-        fontWeight: '900',
-        letterSpacing: 0.8,
+        fontWeight: '600',
     },
     savingSubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },
     controlRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
@@ -1836,7 +1765,7 @@ const styles = StyleSheet.create({
     controlButtonText: {
         color: '#e5e7eb',
         fontSize: 10,
-        fontWeight: '900',
+        fontWeight: '600',
         letterSpacing: 0.5,
     },
     resetButton: { borderColor: 'rgba(248,113,113,0.35)' },
@@ -1849,7 +1778,7 @@ const styles = StyleSheet.create({
     },
     completeButton: {
         minHeight: 48,
-        backgroundColor: colors.accent,
+        backgroundColor: '#d7d9dd',
         borderRadius: 7,
         flexDirection: 'row',
         justifyContent: 'center',
@@ -1860,8 +1789,7 @@ const styles = StyleSheet.create({
     completeButtonText: {
         color: '#071017',
         fontSize: 11,
-        fontWeight: '900',
-        letterSpacing: 0.6,
+        fontWeight: '700',
     },
     modalError: {
         marginTop: 14,
