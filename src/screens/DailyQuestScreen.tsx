@@ -170,8 +170,8 @@ export default function DailyQuestScreen() {
     }, [pauseCurrentSession]);
 
     const syncProgress = useCallback(
-        async (current: ActiveQuestSession, showError = false) => {
-            if (pingInFlightRef.current) return;
+        async (current: ActiveQuestSession): Promise<number | null> => {
+            if (pingInFlightRef.current) return null;
             pingInFlightRef.current = true;
 
             try {
@@ -194,6 +194,7 @@ export default function DailyQuestScreen() {
                     saveSession(updated);
                     return updated;
                 });
+                return serverAccumulated;
             } catch (error: any) {
                 console.log('Progress sync error:', error);
                 setSession(previous => {
@@ -204,12 +205,7 @@ export default function DailyQuestScreen() {
                     saveSession(updated);
                     return updated;
                 });
-                if (showError) {
-                    setErrorMessage(
-                        error.response?.data?.message ||
-                        'Unable to synchronize final progress.'
-                    );
-                }
+                return null;
             } finally {
                 pingInFlightRef.current = false;
             }
@@ -276,16 +272,56 @@ export default function DailyQuestScreen() {
 
             pingTickRef.current += 1;
             if (
-                pingTickRef.current >= PING_INTERVAL_SECONDS ||
-                isLastTrainingSecond
+                pingTickRef.current >= PING_INTERVAL_SECONDS &&
+                !isLastTrainingSecond
             ) {
                 pingTickRef.current = 0;
-                void syncProgress(current, isLastTrainingSecond);
+                void syncProgress(current);
             }
         }, 1000);
 
         return () => clearInterval(interval);
     }, [session?.isPaused, session?.itemId, saveSession, syncProgress]);
+
+    useEffect(() => {
+        const needsFinalSync =
+            session?.timeLeft === 0 &&
+            session.accumulatedSeconds < session.totalRequiredSeconds;
+
+        if (!needsFinalSync) return;
+
+        let cancelled = false;
+
+        const retryFinalSync = async () => {
+            const current = sessionRef.current;
+            if (
+                cancelled ||
+                !current ||
+                current.timeLeft !== 0 ||
+                current.accumulatedSeconds >= current.totalRequiredSeconds
+            ) {
+                return;
+            }
+
+            setSession(previous =>
+                previous ? { ...previous, isFinishing: true } : previous
+            );
+            await syncProgress(current);
+        };
+
+        void retryFinalSync();
+        const retryInterval = setInterval(retryFinalSync, 5000);
+
+        return () => {
+            cancelled = true;
+            clearInterval(retryInterval);
+        };
+    }, [
+        session?.timeLeft,
+        session?.accumulatedSeconds,
+        session?.totalRequiredSeconds,
+        syncProgress,
+    ]);
 
     const handleRefresh = () => {
         setRefreshing(true);
@@ -456,6 +492,49 @@ export default function DailyQuestScreen() {
         } finally {
             setActionLoading(false);
         }
+    };
+
+    const confirmResetWorkout = () => {
+        if (!workoutItem || actionLoading) return;
+
+        const wasRunning = Boolean(sessionRef.current && !sessionRef.current.isPaused);
+        pauseCurrentSession();
+        let shouldResume = wasRunning;
+
+        const resumeAfterCancel = () => {
+            const current = sessionRef.current;
+            if (!shouldResume || !current || current.timeLeft === 0) return;
+
+            shouldResume = false;
+            const resumed = { ...current, isPaused: false };
+            sessionRef.current = resumed;
+            setSession(resumed);
+            saveSession(resumed);
+        };
+
+        Alert.alert(
+            'Reset Exercise?',
+            `All saved progress for ${workoutItem.exerciseName} will be lost. This action cannot be undone.`,
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                    onPress: resumeAfterCancel,
+                },
+                {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: () => {
+                        shouldResume = false;
+                        void resetWorkout();
+                    },
+                },
+            ],
+            {
+                cancelable: true,
+                onDismiss: resumeAfterCancel,
+            }
+        );
     };
 
     const completeWorkout = async () => {
@@ -1030,85 +1109,68 @@ export default function DailyQuestScreen() {
                                             </Text>
                                         </View>
 
-                                        <View style={styles.serverProgressHeader}>
-                                            <Text style={styles.serverProgressText}>
-                                                SERVER PROGRESS
-                                            </Text>
-                                            <Text style={styles.serverProgressText}>
-                                                {session.accumulatedSeconds}s /{' '}
-                                                {session.totalRequiredSeconds}s
-                                            </Text>
-                                        </View>
-                                        <View style={styles.progressTrack}>
-                                            <View
-                                                style={[
-                                                    styles.progressFill,
-                                                    {
-                                                        width: `${Math.min(
-                                                            100,
-                                                            (session.accumulatedSeconds /
-                                                                Math.max(
-                                                                    1,
-                                                                    session.totalRequiredSeconds
-                                                                )) *
-                                                                100
-                                                        )}%`,
-                                                    },
-                                                ]}
-                                            />
-                                        </View>
+                                        {session.timeLeft === 0 &&
+                                        session.accumulatedSeconds <
+                                            session.totalRequiredSeconds ? (
+                                            <View style={styles.savingStatus}>
+                                                <ActivityIndicator
+                                                    size="small"
+                                                    color="#72bce0"
+                                                />
+                                                <View style={styles.savingStatusText}>
+                                                    <Text style={styles.savingTitle}>
+                                                        SAVING WORKOUT...
+                                                    </Text>
+                                                    <Text style={styles.savingSubtitle}>
+                                                        Progress will sync automatically.
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        ) : null}
 
                                         <View style={styles.controlRow}>
-                                            <TouchableOpacity
-                                                style={styles.controlButton}
-                                                onPress={() => {
-                                                    if (
-                                                        session.timeLeft === 0 &&
-                                                        session.accumulatedSeconds <
-                                                            session.totalRequiredSeconds
-                                                    ) {
-                                                        void syncProgress(session, true);
-                                                        return;
-                                                    }
-                                                    const updated = {
-                                                        ...session,
-                                                        isPaused: !session.isPaused,
-                                                    };
-                                                    setSession(updated);
-                                                    saveSession(updated);
-                                                }}
-                                            >
-                                                <Feather
-                                                    name={
-                                                        session.timeLeft === 0 &&
-                                                        session.accumulatedSeconds <
-                                                            session.totalRequiredSeconds
-                                                            ? 'refresh-cw'
-                                                            : session.isPaused
+                                            {session.timeLeft > 0 ? (
+                                                <TouchableOpacity
+                                                    style={styles.controlButton}
+                                                    onPress={() => {
+                                                        const updated = {
+                                                            ...session,
+                                                            isPaused: !session.isPaused,
+                                                        };
+                                                        setSession(updated);
+                                                        saveSession(updated);
+                                                    }}
+                                                >
+                                                    <Feather
+                                                        name={
+                                                            session.isPaused
                                                                 ? 'play'
                                                                 : 'pause'
-                                                    }
-                                                    size={17}
-                                                    color="#e5e7eb"
-                                                />
-                                                <Text style={styles.controlButtonText}>
-                                                    {session.timeLeft === 0 &&
-                                                    session.accumulatedSeconds <
-                                                        session.totalRequiredSeconds
-                                                        ? 'RETRY SYNC'
-                                                        : session.isPaused
+                                                        }
+                                                        size={17}
+                                                        color="#e5e7eb"
+                                                    />
+                                                    <Text
+                                                        style={
+                                                            styles.controlButtonText
+                                                        }
+                                                    >
+                                                        {session.isPaused
                                                             ? 'RESUME'
                                                             : 'PAUSE'}
-                                                </Text>
-                                            </TouchableOpacity>
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ) : null}
 
                                             <TouchableOpacity
                                                 style={[
                                                     styles.controlButton,
                                                     styles.resetButton,
+                                                    session.timeLeft === 0 &&
+                                                        styles.resetButtonCompact,
                                                 ]}
                                                 disabled={actionLoading}
-                                                onPress={resetWorkout}
+                                                onPress={confirmResetWorkout}
                                             >
                                                 <Feather
                                                     name="rotate-ccw"
@@ -1741,12 +1803,24 @@ const styles = StyleSheet.create({
         letterSpacing: 1.4,
         marginTop: 3,
     },
-    serverProgressHeader: {
+    savingStatus: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 7,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(114,188,224,0.2)',
+        backgroundColor: 'rgba(114,188,224,0.06)',
+        borderRadius: 9,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
     },
-    serverProgressText: { color: colors.muted, fontSize: 9, fontWeight: '800' },
+    savingStatusText: { marginLeft: 11 },
+    savingTitle: {
+        color: colors.accent,
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 0.8,
+    },
+    savingSubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },
     controlRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
     controlButton: {
         flex: 1,
@@ -1766,6 +1840,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     resetButton: { borderColor: 'rgba(248,113,113,0.35)' },
+    resetButtonCompact: { flex: 0, paddingHorizontal: 24 },
     resetButtonText: {
         color: '#f87171',
         fontSize: 10,
