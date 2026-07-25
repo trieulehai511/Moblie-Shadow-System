@@ -8,6 +8,7 @@ import React, {
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     AppState,
     Image,
     Linking,
@@ -21,6 +22,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { jwtDecode } from 'jwt-decode';
 import api from '../services/api';
@@ -36,8 +38,28 @@ type TokenPayload = {
     username?: string;
 };
 
+type AttributeName = 'strength' | 'agility' | 'vitality';
+type AttributeValues = Partial<Record<AttributeName, number>>;
+
+type CompletionReward = {
+    message: string;
+    attributeGains: AttributeValues;
+};
+
 const SESSION_PREFIX = 'shadow_quest_session_';
 const PING_INTERVAL_SECONDS = 10;
+const ATTRIBUTE_NAMES: AttributeName[] = ['strength', 'agility', 'vitality'];
+const ATTRIBUTE_LABELS: Record<AttributeName, string> = {
+    strength: 'STR',
+    agility: 'AGI',
+    vitality: 'VIT',
+};
+const COMPLETION_MESSAGES = [
+    'Your physical attributes have increased.',
+    'Today’s effort has been recorded.',
+    'You are stronger than you were yesterday.',
+    'Progress confirmed. Keep moving.',
+];
 
 const PACE_OPTIONS: Array<{
     value: TrainingPace;
@@ -60,7 +82,17 @@ const formatTime = (seconds: number) => {
     return `${minutes}:${remainder.toString().padStart(2, '0')}`;
 };
 
+const getAttributes = (data: any): AttributeValues => {
+    const profile = data?.result ?? data ?? {};
+    return Object.fromEntries(
+        ATTRIBUTE_NAMES
+            .filter(attribute => typeof profile[attribute] === 'number')
+            .map(attribute => [attribute, profile[attribute]])
+    ) as AttributeValues;
+};
+
 export default function DailyQuestScreen() {
+    const navigation = useNavigation<any>();
     const [questData, setQuestData] = useState<DailyQuestResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -72,12 +104,37 @@ export default function DailyQuestScreen() {
     const [session, setSession] = useState<ActiveQuestSession | null>(null);
     const [selectedPace, setSelectedPace] = useState<TrainingPace>('AVERAGE');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [completionReward, setCompletionReward] =
+        useState<CompletionReward | null>(null);
 
     const sessionRef = useRef<ActiveQuestSession | null>(null);
     const workoutItemRef = useRef<QuestItem | null>(null);
     const pingTickRef = useRef(0);
     const pingInFlightRef = useRef(false);
     const initialOrderRef = useRef<string[]>([]);
+    const rewardOpacity = useRef(new Animated.Value(0)).current;
+    const rewardScale = useRef(new Animated.Value(0.94)).current;
+
+    useEffect(() => {
+        if (!completionReward) return;
+
+        rewardOpacity.setValue(0);
+        rewardScale.setValue(0.94);
+        Animated.parallel([
+            Animated.timing(rewardOpacity, {
+                toValue: 1,
+                duration: 220,
+                useNativeDriver: true,
+            }),
+            Animated.spring(rewardScale, {
+                toValue: 1,
+                damping: 15,
+                stiffness: 170,
+                mass: 0.8,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, [completionReward, rewardOpacity, rewardScale]);
 
     useEffect(() => {
         sessionRef.current = session;
@@ -542,22 +599,90 @@ export default function DailyQuestScreen() {
         setActionLoading(true);
         setErrorMessage(null);
         try {
+            const completedItemId = workoutItem.id;
+            const mainItemsBefore =
+                questData?.questItems.filter(item => item.type !== 'BONUS') ?? [];
+            const wasMainQuestCompleted =
+                mainItemsBefore.length > 0 &&
+                mainItemsBefore.every(item => item.completed);
+            const isFinalMainQuestItem = Boolean(
+                questData &&
+                !wasMainQuestCompleted &&
+                questData.questItems
+                    .filter(item => item.type !== 'BONUS')
+                    .every(item => item.id === completedItemId || item.completed)
+            );
+            let attributesBefore: AttributeValues = {};
+
+            if (isFinalMainQuestItem) {
+                try {
+                    const profileBefore = await api.get('/auth/me');
+                    attributesBefore = getAttributes(profileBefore.data);
+                } catch (profileError) {
+                    console.log('Read attributes before completion error:', profileError);
+                }
+            }
+
             const response = await api.patch(
-                `/daily-quest/item/${workoutItem.id}/complete`
+                `/daily-quest/item/${completedItemId}/complete`
             );
             const quest = unwrapQuest(response.data);
             if (!quest) throw new Error('Updated quest data was not returned.');
 
-            removeSession(workoutItem.id);
+            removeSession(completedItemId);
             setQuestData(sortQuest(quest));
             setSession(null);
             setWorkoutItem(null);
 
-            if (quest.completed) {
-                Alert.alert(
-                    'QUEST COMPLETE',
-                    'Physical attributes increased. The System has recorded your progress.'
-                );
+            const mainItemsAfter = quest.questItems.filter(
+                item => item.type !== 'BONUS'
+            );
+            const isMainQuestCompleted =
+                mainItemsAfter.length > 0 &&
+                mainItemsAfter.every(item => item.completed);
+            const questJustCleared =
+                !wasMainQuestCompleted && isMainQuestCompleted;
+
+            console.log('Quest reward check:', {
+                wasMainQuestCompleted,
+                isMainQuestCompleted,
+                questCompletedFromServer: quest.completed,
+                questJustCleared,
+            });
+
+            if (questJustCleared) {
+                let attributeGains: AttributeValues = {};
+
+                try {
+                    const profileAfter = await api.get('/auth/me');
+                    const attributesAfter = getAttributes(profileAfter.data);
+                    attributeGains = Object.fromEntries(
+                        ATTRIBUTE_NAMES
+                            .filter(
+                                attribute =>
+                                    typeof attributesBefore[attribute] === 'number' &&
+                                    typeof attributesAfter[attribute] === 'number'
+                            )
+                            .map(attribute => [
+                                attribute,
+                                Math.max(
+                                    0,
+                                    attributesAfter[attribute]! -
+                                    attributesBefore[attribute]!
+                                ),
+                            ])
+                    ) as AttributeValues;
+                } catch (profileError) {
+                    console.log('Read attributes after completion error:', profileError);
+                }
+
+                setCompletionReward({
+                    message:
+                        COMPLETION_MESSAGES[
+                            Math.floor(Math.random() * COMPLETION_MESSAGES.length)
+                        ],
+                    attributeGains,
+                });
             } else {
                 Alert.alert('Exercise Complete', 'Progress successfully recorded.');
             }
@@ -816,6 +941,101 @@ export default function DailyQuestScreen() {
                     )}
                 </View>
             </ScrollView>
+
+            <Modal
+                visible={Boolean(completionReward)}
+                transparent
+                animationType="fade"
+                statusBarTranslucent
+                onRequestClose={() => setCompletionReward(null)}
+            >
+                <View style={styles.rewardOverlay}>
+                    <Animated.View
+                        style={[
+                            styles.rewardCard,
+                            {
+                                opacity: rewardOpacity,
+                                transform: [{ scale: rewardScale }],
+                            },
+                        ]}
+                    >
+                        <View style={styles.rewardIcon}>
+                            <Feather name="arrow-up" size={24} color="#9ac3aa" />
+                        </View>
+
+                        <Text style={styles.rewardEyebrow}>QUEST COMPLETE</Text>
+                        <Text style={styles.rewardTitle}>Attributes increased</Text>
+                        <Text style={styles.rewardMessage}>
+                            {completionReward?.message}
+                        </Text>
+
+                        <View style={styles.attributeChanges}>
+                            {ATTRIBUTE_NAMES.map(attribute => {
+                                const gain =
+                                    completionReward?.attributeGains[attribute];
+                                if (typeof gain !== 'number' || gain <= 0) {
+                                    return null;
+                                }
+
+                                return (
+                                    <View
+                                        style={styles.attributeChangeRow}
+                                        key={attribute}
+                                    >
+                                        <Text style={styles.attributeChangeLabel}>
+                                            {ATTRIBUTE_LABELS[attribute]}
+                                        </Text>
+                                        <Text style={styles.attributeChangeValue}>
+                                            +{gain}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+
+                            {!ATTRIBUTE_NAMES.some(
+                                attribute =>
+                                    (completionReward?.attributeGains[attribute] ??
+                                        0) > 0
+                            ) ? (
+                                <Text style={styles.rewardAppliedText}>
+                                    Rewards were applied to your profile.
+                                </Text>
+                            ) : null}
+                        </View>
+
+                        <View style={styles.rewardActions}>
+                            <TouchableOpacity
+                                style={styles.viewProfileButton}
+                                onPress={async () => {
+                                    if (completionReward) {
+                                        await AsyncStorage.setItem(
+                                            'shadow_system_attribute_reward',
+                                            JSON.stringify({
+                                                attributeGains:
+                                                    completionReward.attributeGains,
+                                                claimedAt: Date.now(),
+                                            })
+                                        );
+                                    }
+                                    setCompletionReward(null);
+                                    navigation.navigate('Profile');
+                                }}
+                            >
+                                <Text style={styles.viewProfileButtonText}>
+                                    View profile
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.rewardDoneButton}
+                                onPress={() => setCompletionReward(null)}
+                            >
+                                <Text style={styles.rewardDoneButtonText}>Done</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </View>
+            </Modal>
 
             <Modal
                 visible={Boolean(detailItem)}
@@ -1572,6 +1792,124 @@ const styles = StyleSheet.create({
         letterSpacing: 0.6,
     },
     buttonDisabled: { opacity: 0.55 },
+    rewardOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(3,4,7,0.84)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 22,
+    },
+    rewardCard: {
+        width: '100%',
+        maxWidth: 420,
+        backgroundColor: '#15171c',
+        borderWidth: 1,
+        borderColor: '#343840',
+        borderRadius: 14,
+        padding: 24,
+        shadowColor: '#000000',
+        shadowOpacity: 0.35,
+        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 12 },
+        elevation: 12,
+    },
+    rewardIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: 'rgba(130,184,157,0.09)',
+        borderWidth: 1,
+        borderColor: 'rgba(130,184,157,0.25)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    rewardEyebrow: {
+        color: '#82b89d',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 1.2,
+        marginBottom: 7,
+    },
+    rewardTitle: {
+        color: '#f2f3f5',
+        fontSize: 25,
+        fontWeight: '700',
+        letterSpacing: -0.4,
+    },
+    rewardMessage: {
+        color: '#9297a0',
+        fontSize: 13,
+        lineHeight: 20,
+        marginTop: 10,
+        marginBottom: 22,
+    },
+    attributeChanges: {
+        backgroundColor: '#101116',
+        borderWidth: 1,
+        borderColor: '#292c33',
+        borderRadius: 9,
+        paddingHorizontal: 14,
+        paddingVertical: 5,
+        marginBottom: 24,
+    },
+    attributeChangeRow: {
+        minHeight: 44,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#24272d',
+    },
+    attributeChangeLabel: {
+        color: '#a5a9b1',
+        fontSize: 12,
+        fontWeight: '600',
+        letterSpacing: 0.7,
+    },
+    attributeChangeValue: {
+        color: '#82b89d',
+        fontSize: 17,
+        fontWeight: '700',
+    },
+    rewardAppliedText: {
+        color: '#858a93',
+        fontSize: 12,
+        lineHeight: 18,
+        textAlign: 'center',
+        paddingVertical: 14,
+    },
+    rewardActions: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    viewProfileButton: {
+        flex: 1,
+        height: 44,
+        borderWidth: 1,
+        borderColor: '#3a3e46',
+        borderRadius: 7,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    viewProfileButtonText: {
+        color: '#c3c6cc',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    rewardDoneButton: {
+        flex: 1,
+        height: 44,
+        backgroundColor: '#e0e2e5',
+        borderRadius: 7,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    rewardDoneButtonText: {
+        color: '#17191e',
+        fontSize: 12,
+        fontWeight: '700',
+    },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(2,3,6,0.88)',

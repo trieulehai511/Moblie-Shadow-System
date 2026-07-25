@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     Image,
     RefreshControl,
     ScrollView,
@@ -14,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
 import {
     // ...
@@ -54,19 +56,59 @@ type AttributeCardProps = {
     icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
     value: number;
     label: string;
+    gain?: number;
+    rewardProgress: Animated.Value;
 };
 
-function AttributeCard({ icon, value, label }: AttributeCardProps) {
+function AttributeCard({
+    icon,
+    value,
+    label,
+    gain = 0,
+    rewardProgress,
+}: AttributeCardProps) {
+    const hasGain = gain > 0;
+    const animatedCardStyle = hasGain
+        ? {
+            borderColor: rewardProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['#373940', '#82b89d'],
+            }),
+            backgroundColor: rewardProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['#111216', 'rgba(130,184,157,0.12)'],
+            }),
+            transform: [
+                {
+                    scale: rewardProgress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 1.035],
+                    }),
+                },
+            ],
+        }
+        : undefined;
+
     return (
-        <View style={styles.attributeCard}>
+        <Animated.View style={[styles.attributeCard, animatedCardStyle]}>
             <View style={styles.attributeIcon}>
                 <MaterialCommunityIcons name={icon} size={23} color="#f4f4f5" />
             </View>
-            <View>
+            <View style={styles.attributeContent}>
                 <Text style={styles.attributeValue}>{value}</Text>
                 <Text style={styles.attributeLabel}>{label}</Text>
             </View>
-        </View>
+            {hasGain ? (
+                <Animated.Text
+                    style={[
+                        styles.attributeGain,
+                        { opacity: rewardProgress },
+                    ]}
+                >
+                    +{gain}
+                </Animated.Text>
+            ) : null}
+        </Animated.View>
     );
 }
 
@@ -74,6 +116,10 @@ export default function ProfileScreen({ navigation }: any) {
     const [profile, setProfile] = useState<HunterProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [attributeReward, setAttributeReward] = useState<
+        Partial<Record<'strength' | 'agility' | 'vitality', number>> | null
+    >(null);
+    const rewardProgress = useRef(new Animated.Value(0)).current;
 
     const rank = profile?.rankTier?.trim().toUpperCase() || 'E';
 
@@ -83,6 +129,26 @@ export default function ProfileScreen({ navigation }: any) {
         try {
             const response = await api.get('/auth/me');
             setProfile(response.data.result);
+
+            const storedReward = await AsyncStorage.getItem(
+                'shadow_system_attribute_reward'
+            );
+            if (storedReward) {
+                try {
+                    const reward = JSON.parse(storedReward) as {
+                        attributeGains?: Partial<
+                            Record<'strength' | 'agility' | 'vitality', number>
+                        >;
+                    };
+                    setAttributeReward(reward.attributeGains ?? null);
+                } catch (rewardError) {
+                    console.log('Read attribute reward error:', rewardError);
+                } finally {
+                    await AsyncStorage.removeItem(
+                        'shadow_system_attribute_reward'
+                    );
+                }
+            }
         } catch (error: any) {
             console.log('Fetch profile error:', error);
             Alert.alert(
@@ -95,9 +161,30 @@ export default function ProfileScreen({ navigation }: any) {
         }
     }, []);
 
+    useFocusEffect(
+        useCallback(() => {
+            void fetchProfile();
+        }, [fetchProfile])
+    );
+
     useEffect(() => {
-        fetchProfile();
-    }, [fetchProfile]);
+        if (!attributeReward) return;
+
+        rewardProgress.setValue(0);
+        Animated.sequence([
+            Animated.timing(rewardProgress, {
+                toValue: 1,
+                duration: 350,
+                useNativeDriver: false,
+            }),
+            Animated.delay(1100),
+            Animated.timing(rewardProgress, {
+                toValue: 0,
+                duration: 500,
+                useNativeDriver: false,
+            }),
+        ]).start(() => setAttributeReward(null));
+    }, [attributeReward, rewardProgress]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -263,21 +350,28 @@ export default function ProfileScreen({ navigation }: any) {
                         icon="sword-cross"
                         value={profile?.strength ?? 0}
                         label="STR"
+                        gain={attributeReward?.strength}
+                        rewardProgress={rewardProgress}
                     />
                     <AttributeCard
                         icon="run-fast"
                         value={profile?.agility ?? 0}
                         label="AGI"
+                        gain={attributeReward?.agility}
+                        rewardProgress={rewardProgress}
                     />
                     <AttributeCard
                         icon="heart-outline"
                         value={profile?.vitality ?? 0}
                         label="VIT"
+                        gain={attributeReward?.vitality}
+                        rewardProgress={rewardProgress}
                     />
                     <AttributeCard
                         icon="shield-outline"
                         value={profile?.shieldCount ?? 0}
                         label="SHIELDS"
+                        rewardProgress={rewardProgress}
                     />
                 </View>
             </View>
@@ -462,6 +556,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
+    },
+    attributeContent: {
+        flex: 1,
+    },
+    attributeGain: {
+        color: '#82b89d',
+        fontSize: 15,
+        fontWeight: '800',
+        marginLeft: 8,
     },
     attributeValue: {
         color: '#ffffff',
