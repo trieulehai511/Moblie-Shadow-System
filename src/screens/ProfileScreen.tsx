@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -636,10 +637,26 @@ export default function ProfileScreen({ navigation }: any) {
                     style={styles.modalBackdrop}
                     onPress={() => setSelectedInfo(null)}
                 >
+                    <BlurView
+                        pointerEvents="none"
+                        intensity={38}
+                        tint="systemThinMaterialDark"
+                        style={StyleSheet.absoluteFill}
+                    />
+                    <View
+                        pointerEvents="none"
+                        style={styles.modalDimOverlay}
+                    />
                     <Pressable
                         style={styles.infoModal}
                         onPress={event => event.stopPropagation()}
                     >
+                        <BlurView
+                            pointerEvents="none"
+                            intensity={70}
+                            tint="systemUltraThinMaterialDark"
+                            style={StyleSheet.absoluteFill}
+                        />
                         <View
                             style={[
                                 styles.modalAccent,
@@ -972,19 +989,28 @@ const styles = StyleSheet.create({
     },
     modalBackdrop: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.88)',
+        backgroundColor: 'transparent',
         justifyContent: 'center',
         paddingHorizontal: 22,
     },
+    modalDimOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    },
     infoModal: {
-        backgroundColor: '#090a0c',
+        backgroundColor: 'rgba(8, 9, 11, 0.72)',
         borderWidth: 1,
-        borderColor: '#27292f',
-        borderRadius: 16,
+        borderColor: 'rgba(255, 255, 255, 0.13)',
+        borderRadius: 20,
         paddingHorizontal: 22,
         paddingTop: 20,
         paddingBottom: 22,
         overflow: 'hidden',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 18 },
+        shadowOpacity: 0.45,
+        shadowRadius: 30,
+        elevation: 18,
     },
     modalAccent: {
         position: 'absolute',
