@@ -128,6 +128,8 @@ export default function ProfileScreen({ navigation }: any) {
         100
     );
     const rpToNextRank = Math.max(profile?.rpToNextRank ?? 0, 0);
+    const currentRp = Math.max(profile?.currentRp ?? 0, 0);
+    const nextRankRp = currentRp + rpToNextRank;
 
 
     const fetchProfile = useCallback(async () => {
@@ -389,12 +391,14 @@ export default function ProfileScreen({ navigation }: any) {
 
                     <View style={styles.rankProgressFooter}>
                         <Text style={styles.progressPercentText}>
-                            {rankProgressPercent.toFixed(2)}%
+                            {nextRank
+                                ? `${currentRp} / ${nextRankRp} RP`
+                                : `${currentRp} RP`}
                         </Text>
 
                         <Text style={styles.remainingRpText}>
                             {nextRank
-                                ? `${rpToNextRank} RP TO RANK ${nextRank}`
+                                ? `${rankProgressPercent.toFixed(2)}% • ${rpToNextRank} RP LEFT`
                                 : 'MAXIMUM RANK REACHED'}
                         </Text>
                     </View>
