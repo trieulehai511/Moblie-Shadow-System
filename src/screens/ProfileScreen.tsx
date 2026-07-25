@@ -4,6 +4,8 @@ import {
     Alert,
     Animated,
     Image,
+    Modal,
+    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -52,12 +54,62 @@ const rankStyles: Record<string, TextStyle> = {
     },
 };
 
+type ProfileInfoModal = {
+    title: string;
+    shortLabel?: string;
+    description: string;
+    value?: number | string;
+    message?: string;
+    color?: string;
+};
+
+type AttributeLabel = 'STR' | 'AGI' | 'VIT';
+
+const attributeMessages: Record<AttributeLabel, string[]> = {
+    STR: [
+        'Sức mạnh của ngươi vẫn còn quá yếu ớt.',
+        'Lực chiến đã tiến bộ, nhưng vẫn chưa đủ để áp đảo đối thủ.',
+        'Sức mạnh này đã bắt đầu trở nên đáng gờm.',
+        'Đòn đánh của ngươi đã vượt xa phần lớn Hunter thông thường.',
+        'Sức mạnh của ngươi đang tiến gần đến giới hạn.',
+        'Sức mạnh phi thường. Giới hạn của con người không còn áp dụng với ngươi.',
+    ],
+    AGI: [
+        'Tốc độ và phản xạ của ngươi vẫn còn quá chậm.',
+        'Ngươi đã nhanh hơn, nhưng vẫn chưa đủ để né tránh hiểm nguy.',
+        'Phản xạ của ngươi đã bắt đầu trở nên sắc bén.',
+        'Tốc độ này đã vượt xa phần lớn Hunter thông thường.',
+        'Chuyển động của ngươi đang tiến gần đến giới hạn.',
+        'Tốc độ phi thường. Gần như không ai có thể theo kịp ngươi.',
+    ],
+    VIT: [
+        'Thể lực và sức bền của ngươi vẫn còn quá yếu.',
+        'Ngươi đã bền bỉ hơn, nhưng vẫn chưa đủ cho một trận chiến dài.',
+        'Cơ thể ngươi đã có thể chịu đựng những thử thách khắc nghiệt.',
+        'Sức bền này đã vượt xa phần lớn Hunter thông thường.',
+        'Thể lực của ngươi đang tiến gần đến giới hạn.',
+        'Sức bền phi thường. Cơ thể ngươi gần như không biết mệt mỏi.',
+    ],
+};
+
+const getAttributeMessage = (attribute: AttributeLabel, value: number) => {
+    const level =
+        value < 20 ? 0 :
+        value < 40 ? 1 :
+        value < 60 ? 2 :
+        value < 80 ? 3 :
+        value < 100 ? 4 : 5;
+
+    return attributeMessages[attribute][level];
+};
+
 type AttributeCardProps = {
     icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
     value: number;
     label: string;
     gain?: number;
     rewardProgress: Animated.Value;
+    onPress?: () => void;
 };
 
 function AttributeCard({
@@ -66,6 +118,7 @@ function AttributeCard({
     label,
     gain = 0,
     rewardProgress,
+    onPress
 }: AttributeCardProps) {
     const hasGain = gain > 0;
     const animatedCardStyle = hasGain
@@ -90,25 +143,39 @@ function AttributeCard({
         : undefined;
 
     return (
-        <Animated.View style={[styles.attributeCard, animatedCardStyle]}>
-            <View style={styles.attributeIcon}>
-                <MaterialCommunityIcons name={icon} size={23} color="#f4f4f5" />
-            </View>
-            <View style={styles.attributeContent}>
-                <Text style={styles.attributeValue}>{value}</Text>
-                <Text style={styles.attributeLabel}>{label}</Text>
-            </View>
-            {hasGain ? (
-                <Animated.Text
-                    style={[
-                        styles.attributeGain,
-                        { opacity: rewardProgress },
-                    ]}
-                >
-                    +{gain}
-                </Animated.Text>
-            ) : null}
-        </Animated.View>
+        <TouchableOpacity
+            style={styles.attributeTouchable}
+            activeOpacity={0.75}
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={`${label} attribute, current value ${value}`}
+        >
+            <Animated.View style={[styles.attributeCard, animatedCardStyle]}>
+                <View style={styles.attributeIcon}>
+                    <MaterialCommunityIcons
+                        name={icon}
+                        size={23}
+                        color="#f4f4f5"
+                    />
+                </View>
+
+                <View style={styles.attributeContent}>
+                    <Text style={styles.attributeValue}>{value}</Text>
+                    <Text style={styles.attributeLabel}>{label}</Text>
+                </View>
+
+                {hasGain ? (
+                    <Animated.Text
+                        style={[
+                            styles.attributeGain,
+                            { opacity: rewardProgress },
+                        ]}
+                    >
+                        +{gain}
+                    </Animated.Text>
+                ) : null}
+            </Animated.View>
+        </TouchableOpacity>
     );
 }
 
@@ -119,6 +186,8 @@ export default function ProfileScreen({ navigation }: any) {
     const [attributeReward, setAttributeReward] = useState<
         Partial<Record<'strength' | 'agility' | 'vitality', number>> | null
     >(null);
+    const [selectedInfo, setSelectedInfo] =
+        useState<ProfileInfoModal | null>(null);
     const rewardProgress = useRef(new Animated.Value(0)).current;
 
     const rank = profile?.rankTier?.trim().toUpperCase() || 'E';
@@ -240,6 +309,23 @@ export default function ProfileScreen({ navigation }: any) {
         );
     };
 
+    const openAttributeInfo = (
+        title: string,
+        shortLabel: AttributeLabel,
+        description: string,
+        value: number,
+        color: string
+    ) => {
+        setSelectedInfo({
+            title,
+            shortLabel,
+            description,
+            value,
+            message: getAttributeMessage(shortLabel, value),
+            color,
+        });
+    };
+
     if (loading) {
         return (
             <View style={styles.centerContainer}>
@@ -306,22 +392,67 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
 
                 <View style={styles.summaryRow}>
-                    <View style={styles.summaryItem}>
+                    <TouchableOpacity
+                        style={styles.summaryItem}
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedInfo({
+                            title: 'RANK POINT',
+                            shortLabel: 'RP',
+                            description: 'Điểm tích lũy dùng để xác định cấp bậc Hunter.',
+                            value: currentRp,
+                            message: nextRank
+                                ? `Còn ${rpToNextRank} RP để đạt Rank ${nextRank}.`
+                                : 'Bạn đã đạt cấp bậc cao nhất.',
+                            color: '#72bce0',
+                        })}
+                    >
                         <Text style={styles.summaryValue}>{profile?.currentRp ?? 0}</Text>
                         <Text style={styles.summaryLabel}> RP</Text>
-                    </View>
-                    <View style={styles.summaryItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.summaryItem}
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedInfo({
+                            title: 'CURRENT STREAK',
+                            description: 'Số ngày liên tiếp bạn hoàn thành hoạt động.',
+                            value: profile?.currentStreak ?? 0,
+                            message: 'Duy trì chuỗi để chứng minh tính kỷ luật.',
+                            color: '#f97316',
+                        })}
+                    >
                         <Text style={styles.summaryValue}>{profile?.currentStreak ?? 0}</Text>
                         <Text style={styles.summaryLabel}> Streak</Text>
-                    </View>
-                    <View style={styles.summaryItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.summaryItem}
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedInfo({
+                            title: 'BEST STREAK',
+                            description: 'Chuỗi hoạt động dài nhất mà bạn từng đạt được.',
+                            value: profile?.maxStreak ?? 0,
+                            message: 'Hãy vượt qua kỷ lục của chính mình.',
+                            color: '#eab308',
+                        })}
+                    >
                         <Text style={styles.summaryValue}>{profile?.maxStreak ?? 0}</Text>
                         <Text style={styles.summaryLabel}> Best</Text>
-                    </View>
-                    <View style={styles.summaryItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.summaryItem}
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedInfo({
+                            title: 'HUNTER RANK',
+                            description: 'Cấp bậc thể hiện quá trình phát triển của Hunter.',
+                            value: rank,
+                            message: nextRank
+                                ? `Cấp bậc tiếp theo là Rank ${nextRank}.`
+                                : 'Bạn đã đạt cấp bậc cao nhất.',
+                            color: rankStyles[rank]?.color as string ?? '#9a6b19',
+                        })}
+                    >
                         <Text style={[styles.summaryValue, styles.rankText, rankStyles[rank] || rankStyles.E]}>{profile?.rankTier || 'E'}</Text>
                         <Text style={styles.summaryLabel}> Rank</Text>
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 <View
@@ -438,6 +569,13 @@ export default function ProfileScreen({ navigation }: any) {
                             label="STR"
                             gain={attributeReward?.strength}
                             rewardProgress={rewardProgress}
+                            onPress={() => openAttributeInfo(
+                                'STRENGTH',
+                                'STR',
+                                'Chỉ số thể hiện sức mạnh thể chất và lực tấn công trực diện.',
+                                profile?.strength ?? 0,
+                                '#ef4444'
+                            )}
                         />
                         <AttributeCard
                             icon="run-fast"
@@ -445,6 +583,13 @@ export default function ProfileScreen({ navigation }: any) {
                             label="AGI"
                             gain={attributeReward?.agility}
                             rewardProgress={rewardProgress}
+                            onPress={() => openAttributeInfo(
+                                'AGILITY',
+                                'AGI',
+                                'Chỉ số thể hiện tốc độ, phản xạ và khả năng né tránh.',
+                                profile?.agility ?? 0,
+                                '#22c55e'
+                            )}
                         />
                         <AttributeCard
                             icon="heart-outline"
@@ -452,16 +597,104 @@ export default function ProfileScreen({ navigation }: any) {
                             label="VIT"
                             gain={attributeReward?.vitality}
                             rewardProgress={rewardProgress}
+                            onPress={() => openAttributeInfo(
+                                'VITALITY',
+                                'VIT',
+                                'Chỉ số thể hiện thể lực, sức bền và khả năng chịu đựng.',
+                                profile?.vitality ?? 0,
+                                '#f97316'
+                            )}
                         />
                         <AttributeCard
                             icon="shield-outline"
                             value={profile?.shieldCount ?? 0}
                             label="SHIELDS"
                             rewardProgress={rewardProgress}
+                            onPress={() => setSelectedInfo({
+                                title: 'SHIELD',
+                                shortLabel: 'SHIELD',
+                                description: 'Shield bảo vệ chuỗi hoạt động khi bạn bỏ lỡ nhiệm vụ.',
+                                value: profile?.shieldCount ?? 0,
+                                message: (profile?.shieldCount ?? 0) > 0
+                                    ? 'Bạn đang được bảo vệ.'
+                                    : 'Bạn chưa có Shield bảo vệ.',
+                                color: '#60a5fa',
+                            })}
                         />
                     </View>
                 </View>
             </ScrollView>
+
+            <Modal
+                visible={selectedInfo !== null}
+                transparent
+                animationType="fade"
+                statusBarTranslucent
+                onRequestClose={() => setSelectedInfo(null)}
+            >
+                <Pressable
+                    style={styles.modalBackdrop}
+                    onPress={() => setSelectedInfo(null)}
+                >
+                    <Pressable
+                        style={styles.infoModal}
+                        onPress={event => event.stopPropagation()}
+                    >
+                        <View
+                            style={[
+                                styles.modalAccent,
+                                { backgroundColor: selectedInfo?.color ?? '#72bce0' },
+                            ]}
+                        />
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalEyebrow}>SYSTEM ANALYSIS</Text>
+                            <TouchableOpacity
+                                style={styles.modalCloseButton}
+                                onPress={() => setSelectedInfo(null)}
+                                accessibilityRole="button"
+                                accessibilityLabel="Close information"
+                            >
+                                <Feather name="x" size={19} color="#777982" />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.modalTitle}>{selectedInfo?.title}</Text>
+                        <Text style={styles.modalDescription}>
+                            {selectedInfo?.description}
+                        </Text>
+                        <View style={styles.modalDivider} />
+                        {selectedInfo?.value !== undefined ? (
+                            <View style={styles.modalValueBox}>
+                                {selectedInfo.shortLabel ? (
+                                    <Text style={styles.modalValueLabel}>
+                                        {selectedInfo.shortLabel}
+                                    </Text>
+                                ) : null}
+                                <Text
+                                    style={[
+                                        styles.modalValue,
+                                        { color: selectedInfo.color ?? '#ffffff' },
+                                    ]}
+                                >
+                                    {selectedInfo.value}
+                                </Text>
+                            </View>
+                        ) : null}
+                        {selectedInfo?.message ? (
+                            <View style={styles.modalMessageBox}>
+                                <View
+                                    style={[
+                                        styles.modalMessageAccent,
+                                        { backgroundColor: selectedInfo.color ?? '#72bce0' },
+                                    ]}
+                                />
+                                <Text style={styles.modalMessage}>
+                                    {selectedInfo.message}
+                                </Text>
+                            </View>
+                        ) : null}
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </SafeAreaView >
     );
 }
@@ -623,7 +856,7 @@ const styles = StyleSheet.create({
         rowGap: 14,
     },
     attributeCard: {
-        width: '48.5%',
+        width: '100%',
         minHeight: 76,
         paddingHorizontal: 14,
         paddingVertical: 12,
@@ -733,6 +966,113 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '800',
         letterSpacing: 0.4,
+    },
+    attributeTouchable: {
+        width: '48.5%',
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.88)',
+        justifyContent: 'center',
+        paddingHorizontal: 22,
+    },
+    infoModal: {
+        backgroundColor: '#090a0c',
+        borderWidth: 1,
+        borderColor: '#27292f',
+        borderRadius: 16,
+        paddingHorizontal: 22,
+        paddingTop: 20,
+        paddingBottom: 22,
+        overflow: 'hidden',
+    },
+    modalAccent: {
+        position: 'absolute',
+        top: 0,
+        left: 22,
+        width: 42,
+        height: 2,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 14,
+    },
+    modalEyebrow: {
+        color: '#666872',
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 2.2,
+    },
+    modalTitle: {
+        color: '#f4f4f5',
+        fontSize: 24,
+        lineHeight: 30,
+        fontWeight: '800',
+        letterSpacing: 0.8,
+    },
+    modalCloseButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#121317',
+        borderWidth: 1,
+        borderColor: '#25272d',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalDescription: {
+        color: '#8f919a',
+        fontSize: 14,
+        lineHeight: 21,
+        marginTop: 7,
+    },
+    modalDivider: {
+        height: 1,
+        backgroundColor: '#202127',
+        marginTop: 20,
+    },
+    modalValueBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 22,
+    },
+    modalValueLabel: {
+        color: '#646670',
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 2,
+    },
+    modalValue: {
+        fontSize: 44,
+        lineHeight: 52,
+        fontWeight: '900',
+        marginTop: 2,
+    },
+    modalMessageBox: {
+        minHeight: 58,
+        backgroundColor: '#0e0f12',
+        borderWidth: 1,
+        borderColor: '#202127',
+        borderRadius: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    modalMessageAccent: {
+        position: 'absolute',
+        left: 0,
+        top: 12,
+        bottom: 12,
+        width: 2,
+    },
+    modalMessage: {
+        color: '#c9cad0',
+        fontSize: 14,
+        lineHeight: 21,
+        fontWeight: '500',
     },
 
 });
