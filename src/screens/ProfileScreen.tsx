@@ -68,28 +68,28 @@ type AttributeLabel = 'STR' | 'AGI' | 'VIT';
 
 const attributeMessages: Record<AttributeLabel, string[]> = {
     STR: [
-        'Sức mạnh của ngươi vẫn còn quá yếu ớt.',
-        'Lực chiến đã tiến bộ, nhưng vẫn chưa đủ để áp đảo đối thủ.',
-        'Sức mạnh này đã bắt đầu trở nên đáng gờm.',
-        'Đòn đánh của ngươi đã vượt xa phần lớn Hunter thông thường.',
-        'Sức mạnh của ngươi đang tiến gần đến giới hạn.',
-        'Sức mạnh phi thường. Giới hạn của con người không còn áp dụng với ngươi.',
+        'Your strength is still far too weak.',
+        'Your combat power has improved, but it is not enough to overwhelm your enemies.',
+        'Your strength is beginning to become formidable.',
+        'Your strikes now surpass those of most ordinary Hunters.',
+        'Your strength is approaching its natural limit.',
+        'Extraordinary strength. Human limits no longer apply to you.',
     ],
     AGI: [
-        'Tốc độ và phản xạ của ngươi vẫn còn quá chậm.',
-        'Ngươi đã nhanh hơn, nhưng vẫn chưa đủ để né tránh hiểm nguy.',
-        'Phản xạ của ngươi đã bắt đầu trở nên sắc bén.',
-        'Tốc độ này đã vượt xa phần lớn Hunter thông thường.',
-        'Chuyển động của ngươi đang tiến gần đến giới hạn.',
-        'Tốc độ phi thường. Gần như không ai có thể theo kịp ngươi.',
+        'Your speed and reflexes are still far too slow.',
+        'You have become faster, but not fast enough to escape every threat.',
+        'Your reflexes are becoming remarkably sharp.',
+        'Your speed now surpasses that of most ordinary Hunters.',
+        'Your movement is approaching its natural limit.',
+        'Extraordinary speed. Almost no one can keep up with you.',
     ],
     VIT: [
-        'Thể lực và sức bền của ngươi vẫn còn quá yếu.',
-        'Ngươi đã bền bỉ hơn, nhưng vẫn chưa đủ cho một trận chiến dài.',
-        'Cơ thể ngươi đã có thể chịu đựng những thử thách khắc nghiệt.',
-        'Sức bền này đã vượt xa phần lớn Hunter thông thường.',
-        'Thể lực của ngươi đang tiến gần đến giới hạn.',
-        'Sức bền phi thường. Cơ thể ngươi gần như không biết mệt mỏi.',
+        'Your stamina and endurance are still far too weak.',
+        'You have grown tougher, but you are not ready for a prolonged battle.',
+        'Your body can now endure severe trials.',
+        'Your endurance now surpasses that of most ordinary Hunters.',
+        'Your vitality is approaching its natural limit.',
+        'Extraordinary endurance. Your body barely knows fatigue.',
     ],
 };
 
@@ -399,11 +399,11 @@ export default function ProfileScreen({ navigation }: any) {
                         onPress={() => setSelectedInfo({
                             title: 'RANK POINT',
                             shortLabel: 'RP',
-                            description: 'Điểm tích lũy dùng để xác định cấp bậc Hunter.',
+                            description: 'Points accumulated to determine your Hunter rank.',
                             value: currentRp,
                             message: nextRank
-                                ? `Còn ${rpToNextRank} RP để đạt Rank ${nextRank}.`
-                                : 'Bạn đã đạt cấp bậc cao nhất.',
+                                ? `${rpToNextRank} RP remaining to reach Rank ${nextRank}.`
+                                : 'You have reached the highest rank.',
                             color: '#72bce0',
                         })}
                     >
@@ -415,9 +415,9 @@ export default function ProfileScreen({ navigation }: any) {
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
                             title: 'CURRENT STREAK',
-                            description: 'Số ngày liên tiếp bạn hoàn thành hoạt động.',
+                            description: 'The number of consecutive days you completed an activity.',
                             value: profile?.currentStreak ?? 0,
-                            message: 'Duy trì chuỗi để chứng minh tính kỷ luật.',
+                            message: 'Maintain your streak and prove your discipline.',
                             color: '#f97316',
                         })}
                     >
@@ -429,9 +429,9 @@ export default function ProfileScreen({ navigation }: any) {
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
                             title: 'BEST STREAK',
-                            description: 'Chuỗi hoạt động dài nhất mà bạn từng đạt được.',
+                            description: 'The longest activity streak you have ever achieved.',
                             value: profile?.maxStreak ?? 0,
-                            message: 'Hãy vượt qua kỷ lục của chính mình.',
+                            message: 'Surpass the record you set for yourself.',
                             color: '#eab308',
                         })}
                     >
@@ -443,11 +443,11 @@ export default function ProfileScreen({ navigation }: any) {
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
                             title: 'HUNTER RANK',
-                            description: 'Cấp bậc thể hiện quá trình phát triển của Hunter.',
+                            description: 'Your rank represents your growth as a Hunter.',
                             value: rank,
                             message: nextRank
-                                ? `Cấp bậc tiếp theo là Rank ${nextRank}.`
-                                : 'Bạn đã đạt cấp bậc cao nhất.',
+                                ? `Your next promotion is Rank ${nextRank}.`
+                                : 'You have reached the highest rank.',
                             color: rankStyles[rank]?.color as string ?? '#9a6b19',
                         })}
                     >
@@ -573,7 +573,7 @@ export default function ProfileScreen({ navigation }: any) {
                             onPress={() => openAttributeInfo(
                                 'STRENGTH',
                                 'STR',
-                                'Chỉ số thể hiện sức mạnh thể chất và lực tấn công trực diện.',
+                                'Measures physical power and direct attack strength.',
                                 profile?.strength ?? 0,
                                 '#ef4444'
                             )}
@@ -587,7 +587,7 @@ export default function ProfileScreen({ navigation }: any) {
                             onPress={() => openAttributeInfo(
                                 'AGILITY',
                                 'AGI',
-                                'Chỉ số thể hiện tốc độ, phản xạ và khả năng né tránh.',
+                                'Measures speed, reflexes, and evasion ability.',
                                 profile?.agility ?? 0,
                                 '#22c55e'
                             )}
@@ -601,7 +601,7 @@ export default function ProfileScreen({ navigation }: any) {
                             onPress={() => openAttributeInfo(
                                 'VITALITY',
                                 'VIT',
-                                'Chỉ số thể hiện thể lực, sức bền và khả năng chịu đựng.',
+                                'Measures stamina, endurance, and physical resilience.',
                                 profile?.vitality ?? 0,
                                 '#f97316'
                             )}
@@ -614,11 +614,11 @@ export default function ProfileScreen({ navigation }: any) {
                             onPress={() => setSelectedInfo({
                                 title: 'SHIELD',
                                 shortLabel: 'SHIELD',
-                                description: 'Shield bảo vệ chuỗi hoạt động khi bạn bỏ lỡ nhiệm vụ.',
+                                description: 'A Shield protects your activity streak when you miss a mission.',
                                 value: profile?.shieldCount ?? 0,
                                 message: (profile?.shieldCount ?? 0) > 0
-                                    ? 'Bạn đang được bảo vệ.'
-                                    : 'Bạn chưa có Shield bảo vệ.',
+                                    ? 'Your streak is currently protected.'
+                                    : 'You do not have a Shield protecting your streak.',
                                 color: '#60a5fa',
                             })}
                         />
@@ -657,6 +657,7 @@ export default function ProfileScreen({ navigation }: any) {
                             tint="systemUltraThinMaterialDark"
                             style={StyleSheet.absoluteFill}
                         />
+                        <View style={styles.modalGrabber} />
                         <View
                             style={[
                                 styles.modalAccent,
@@ -674,18 +675,30 @@ export default function ProfileScreen({ navigation }: any) {
                                 <Feather name="x" size={19} color="#777982" />
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.modalTitle}>{selectedInfo?.title}</Text>
+                        <View style={styles.modalTitleRow}>
+                            <View
+                                style={[
+                                    styles.modalStatusDot,
+                                    { backgroundColor: selectedInfo?.color ?? '#72bce0' },
+                                ]}
+                            />
+                            <Text style={styles.modalTitle}>{selectedInfo?.title}</Text>
+                        </View>
                         <Text style={styles.modalDescription}>
                             {selectedInfo?.description}
                         </Text>
-                        <View style={styles.modalDivider} />
                         {selectedInfo?.value !== undefined ? (
                             <View style={styles.modalValueBox}>
-                                {selectedInfo.shortLabel ? (
-                                    <Text style={styles.modalValueLabel}>
-                                        {selectedInfo.shortLabel}
+                                <View>
+                                    <Text style={styles.modalValueCaption}>
+                                        CURRENT VALUE
                                     </Text>
-                                ) : null}
+                                    {selectedInfo.shortLabel ? (
+                                        <Text style={styles.modalValueLabel}>
+                                            {selectedInfo.shortLabel}
+                                        </Text>
+                                    ) : null}
+                                </View>
                                 <Text
                                     style={[
                                         styles.modalValue,
@@ -698,15 +711,14 @@ export default function ProfileScreen({ navigation }: any) {
                         ) : null}
                         {selectedInfo?.message ? (
                             <View style={styles.modalMessageBox}>
-                                <View
-                                    style={[
-                                        styles.modalMessageAccent,
-                                        { backgroundColor: selectedInfo.color ?? '#72bce0' },
-                                    ]}
-                                />
-                                <Text style={styles.modalMessage}>
-                                    {selectedInfo.message}
-                                </Text>
+                                <View style={styles.modalMessageContent}>
+                                    <Text style={styles.modalMessageLabel}>
+                                        SYSTEM VERDICT
+                                    </Text>
+                                    <Text style={styles.modalMessage}>
+                                        “{selectedInfo.message}”
+                                    </Text>
+                                </View>
                             </View>
                         ) : null}
                     </Pressable>
@@ -990,34 +1002,44 @@ const styles = StyleSheet.create({
     modalBackdrop: {
         flex: 1,
         backgroundColor: 'transparent',
-        justifyContent: 'center',
-        paddingHorizontal: 22,
+        justifyContent: 'flex-end',
+        paddingHorizontal: 10,
+        paddingBottom: 10,
     },
     modalDimOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0, 0, 0, 0.28)',
     },
     infoModal: {
-        backgroundColor: 'rgba(8, 9, 11, 0.72)',
+        backgroundColor: 'rgba(10, 11, 14, 0.78)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.13)',
-        borderRadius: 20,
-        paddingHorizontal: 22,
-        paddingTop: 20,
-        paddingBottom: 22,
+        borderRadius: 28,
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingBottom: 28,
         overflow: 'hidden',
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 18 },
-        shadowOpacity: 0.45,
-        shadowRadius: 30,
+        shadowOffset: { width: 0, height: -12 },
+        shadowOpacity: 0.5,
+        shadowRadius: 28,
         elevation: 18,
+    },
+    modalGrabber: {
+        width: 38,
+        height: 5,
+        borderRadius: 3,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        alignSelf: 'center',
+        marginBottom: 16,
     },
     modalAccent: {
         position: 'absolute',
-        top: 0,
-        left: 22,
-        width: 42,
+        left: 0,
+        right: 0,
+        bottom: 0,
         height: 2,
+        opacity: 0.75,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -1033,10 +1055,24 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         color: '#f4f4f5',
-        fontSize: 24,
-        lineHeight: 30,
+        fontSize: 25,
+        lineHeight: 31,
         fontWeight: '800',
-        letterSpacing: 0.8,
+        letterSpacing: 0.4,
+    },
+    modalTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    modalStatusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 10,
+        shadowColor: '#ffffff',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35,
+        shadowRadius: 6,
     },
     modalCloseButton: {
         width: 32,
@@ -1049,56 +1085,60 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalDescription: {
-        color: '#8f919a',
-        fontSize: 14,
-        lineHeight: 21,
-        marginTop: 7,
-    },
-    modalDivider: {
-        height: 1,
-        backgroundColor: '#202127',
-        marginTop: 20,
+        color: '#9a9ca5',
+        fontSize: 15,
+        lineHeight: 22,
+        marginTop: 9,
+        paddingRight: 12,
     },
     modalValueBox: {
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 22,
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        marginTop: 20,
+    },
+    modalValueCaption: {
+        color: '#62646d',
+        fontSize: 9,
+        fontWeight: '800',
+        letterSpacing: 1.8,
     },
     modalValueLabel: {
-        color: '#646670',
-        fontSize: 10,
+        color: '#d6d7dc',
+        fontSize: 15,
         fontWeight: '800',
-        letterSpacing: 2,
+        letterSpacing: 1.4,
+        marginTop: 7,
     },
     modalValue: {
-        fontSize: 44,
-        lineHeight: 52,
-        fontWeight: '900',
-        marginTop: 2,
+        fontSize: 34,
+        lineHeight: 40,
+        fontWeight: '800',
+        letterSpacing: -0.4,
     },
     modalMessageBox: {
-        minHeight: 58,
-        backgroundColor: '#0e0f12',
-        borderWidth: 1,
-        borderColor: '#202127',
-        borderRadius: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        justifyContent: 'center',
-        overflow: 'hidden',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.09)',
+        marginTop: 14,
+        paddingTop: 18,
     },
-    modalMessageAccent: {
-        position: 'absolute',
-        left: 0,
-        top: 12,
-        bottom: 12,
-        width: 2,
+    modalMessageContent: {
+        paddingHorizontal: 2,
+    },
+    modalMessageLabel: {
+        color: '#62646d',
+        fontSize: 9,
+        fontWeight: '800',
+        letterSpacing: 1.7,
+        marginBottom: 6,
     },
     modalMessage: {
-        color: '#c9cad0',
+        color: '#d2d3d8',
         fontSize: 14,
-        lineHeight: 21,
+        lineHeight: 20,
         fontWeight: '500',
+        fontStyle: 'italic',
     },
 
 });
