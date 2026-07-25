@@ -12,4 +12,7 @@ export interface HunterProfileResponse {
     agility: number;
     vitality: number;
     avatar?: string;
+    rpToNextRank: number;
+    nextRankTier: string | null;
+    rankProgressPercent: number;
 }

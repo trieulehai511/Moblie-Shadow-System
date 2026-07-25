@@ -122,7 +122,12 @@ export default function ProfileScreen({ navigation }: any) {
     const rewardProgress = useRef(new Animated.Value(0)).current;
 
     const rank = profile?.rankTier?.trim().toUpperCase() || 'E';
-
+    const nextRank = profile?.nextRankTier?.trim().toUpperCase() || null;
+    const rankProgressPercent = Math.min(
+        Math.max(profile?.rankProgressPercent ?? 0, 0),
+        100
+    );
+    const rpToNextRank = Math.max(profile?.rpToNextRank ?? 0, 0);
 
 
     const fetchProfile = useCallback(async () => {
@@ -316,66 +321,143 @@ export default function ProfileScreen({ navigation }: any) {
                         <Text style={styles.summaryLabel}> Rank</Text>
                     </View>
                 </View>
-     
 
-            <View style={styles.profileDetails}>
-                <Text style={styles.fullName}>{displayName}</Text>
-                <Text style={styles.description}>
-                    Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
-                </Text>
-                <View style={styles.hunterCodeRow}>
-                    <Text style={styles.hunterCode}>
-                        ID: {profile?.hunterCode || 'UNASSIGNED'}
+                <View
+                    style={styles.rankProgressCard}
+                    accessible
+                    accessibilityRole="progressbar"
+                    accessibilityLabel={
+                        nextRank
+                            ? `Progress to Rank ${nextRank}`
+                            : 'Maximum rank reached'
+                    }
+                    accessibilityValue={{
+                        min: 0,
+                        max: 100,
+                        now: Math.round(rankProgressPercent),
+                        text: nextRank
+                            ? `${rpToNextRank} RP remaining`
+                            : 'Maximum rank reached',
+                    }}
+
+
+                >
+                    <View style={styles.rankProgressHeader}>
+                        <Text style={styles.rankProgressTitle}>
+                            RANK PROGRESS
+                        </Text>
+                        <Text style={styles.rankProgressRanks}>
+                            <Text
+                                style={[
+                                    styles.rankText,
+                                    rankStyles[rank] || rankStyles.E,
+                                ]}
+                            >
+                                {rank}
+                            </Text>
+                            {nextRank ? (
+                                <>
+                                    <Text style={styles.rankProgressSeparator}>
+                                        {' → '}
+                                    </Text>
+                                    <Text
+                                        style={[
+                                            styles.rankText,
+                                            rankStyles[nextRank] || rankStyles.E,
+                                        ]}
+                                    >
+                                        {nextRank}
+                                    </Text>
+                                </>
+                            ) : (
+                                <Text style={styles.rankProgressSeparator}>
+                                    {' • MAX'}
+                                </Text>
+                            )}
+                        </Text>
+                    </View>
+                    <View style={styles.progressTrack}>
+                        <View
+                            style={[
+                                styles.progressFill,
+                                {
+                                    width: `${rankProgressPercent}%`,
+                                },
+                            ]}
+                        />
+                    </View>
+
+                    <View style={styles.rankProgressFooter}>
+                        <Text style={styles.progressPercentText}>
+                            {rankProgressPercent.toFixed(2)}%
+                        </Text>
+
+                        <Text style={styles.remainingRpText}>
+                            {nextRank
+                                ? `${rpToNextRank} RP TO RANK ${nextRank}`
+                                : 'MAXIMUM RANK REACHED'}
+                        </Text>
+                    </View>
+
+                </View>
+                <View style={styles.profileDetails}>
+                    <Text style={styles.fullName}>{displayName}</Text>
+                    <Text style={styles.description}>
+                        Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
                     </Text>
-                    {profile?.hunterCode ? (
-                        <TouchableOpacity
-                            style={styles.copyButton}
-                            activeOpacity={0.65}
-                            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                            accessibilityRole="button"
-                            accessibilityLabel="Copy Hunter ID"
-                            onPress={handleCopyHunterCode}
-                        >
-                            <Feather name="copy" size={16} color="#72bce0" />
-                        </TouchableOpacity>
-                    ) : null}
+                    <View style={styles.hunterCodeRow}>
+                        <Text style={styles.hunterCode}>
+                            ID: {profile?.hunterCode || 'UNASSIGNED'}
+                        </Text>
+                        {profile?.hunterCode ? (
+                            <TouchableOpacity
+                                style={styles.copyButton}
+                                activeOpacity={0.65}
+                                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                                accessibilityRole="button"
+                                accessibilityLabel="Copy Hunter ID"
+                                onPress={handleCopyHunterCode}
+                            >
+                                <Feather name="copy" size={16} color="#72bce0" />
+                            </TouchableOpacity>
+                        ) : null}
+                    </View>
                 </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>COMBAT ATTRIBUTES</Text>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>COMBAT ATTRIBUTES</Text>
 
-                <View style={styles.attributeGrid}>
-                    <AttributeCard
-                        icon="sword-cross"
-                        value={profile?.strength ?? 0}
-                        label="STR"
-                        gain={attributeReward?.strength}
-                        rewardProgress={rewardProgress}
-                    />
-                    <AttributeCard
-                        icon="run-fast"
-                        value={profile?.agility ?? 0}
-                        label="AGI"
-                        gain={attributeReward?.agility}
-                        rewardProgress={rewardProgress}
-                    />
-                    <AttributeCard
-                        icon="heart-outline"
-                        value={profile?.vitality ?? 0}
-                        label="VIT"
-                        gain={attributeReward?.vitality}
-                        rewardProgress={rewardProgress}
-                    />
-                    <AttributeCard
-                        icon="shield-outline"
-                        value={profile?.shieldCount ?? 0}
-                        label="SHIELDS"
-                        rewardProgress={rewardProgress}
-                    />
+                    <View style={styles.attributeGrid}>
+                        <AttributeCard
+                            icon="sword-cross"
+                            value={profile?.strength ?? 0}
+                            label="STR"
+                            gain={attributeReward?.strength}
+                            rewardProgress={rewardProgress}
+                        />
+                        <AttributeCard
+                            icon="run-fast"
+                            value={profile?.agility ?? 0}
+                            label="AGI"
+                            gain={attributeReward?.agility}
+                            rewardProgress={rewardProgress}
+                        />
+                        <AttributeCard
+                            icon="heart-outline"
+                            value={profile?.vitality ?? 0}
+                            label="VIT"
+                            gain={attributeReward?.vitality}
+                            rewardProgress={rewardProgress}
+                        />
+                        <AttributeCard
+                            icon="shield-outline"
+                            value={profile?.shieldCount ?? 0}
+                            label="SHIELDS"
+                            rewardProgress={rewardProgress}
+                        />
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
         </SafeAreaView >
     );
 }
@@ -591,4 +673,62 @@ const styles = StyleSheet.create({
         transform: [{ translateY: -40 }],
         gap: 9,
     },
+    rankProgressCard: {
+        backgroundColor: '#111216',
+        borderWidth: 1,
+        borderColor: '#373940',
+        borderRadius: 13,
+        padding: 16,
+        marginBottom: 28,
+    },
+    rankProgressHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    rankProgressTitle: {
+        color: '#a9a9b2',
+        fontSize: 13,
+        fontWeight: '800',
+        letterSpacing: 1.4,
+    },
+    rankProgressRanks: {
+        fontSize: 15,
+        fontWeight: '800',
+    },
+    rankProgressSeparator: {
+        color: '#a9a9b2',
+        textShadowRadius: 0,
+    },
+    progressTrack: {
+        width: '100%',
+        height: 10,
+        backgroundColor: '#292a2f',
+        borderRadius: 5,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#72bce0',
+        borderRadius: 5,
+    },
+    rankProgressFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    progressPercentText: {
+        color: '#9b9ca4',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    remainingRpText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '800',
+        letterSpacing: 0.4,
+    },
+
 });
