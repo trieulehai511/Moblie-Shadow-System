@@ -1,10 +1,16 @@
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "https://shadow-system-1086471329115.asia-southeast1.run.app/shadow-system";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL) {
+    throw new Error(
+        'Missing EXPO_PUBLIC_API_URL. Add it to the project .env file.'
+    );
+}
 
 const api = axios.create({
-    baseURL: API_URL,
+    baseURL: API_URL.replace(/\/+$/, ''),
     headers: {
         'Content-Type': 'application/json',
     },
