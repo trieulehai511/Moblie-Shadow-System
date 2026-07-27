@@ -12,6 +12,7 @@ import {
     Platform,
     ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ import api from '../services/api';
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const [userName, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +30,7 @@ export default function LoginScreen({ navigation }: Props) {
 
     const handleLogin = async () => {
         if (!userName.trim() || !password.trim()) {
-            Alert.alert('Notice', 'Please enter both Username and Passcode');
+            Alert.alert(t('common.notice'), t('auth.missingCredentials'));
             return;
         }
 
@@ -42,11 +44,11 @@ export default function LoginScreen({ navigation }: Props) {
                 await AsyncStorage.setItem('token', token);
                 navigation.replace('MainApp', { screen: 'DailyQuest' });
             } else {
-                Alert.alert('Error', 'Token not found in response');
+                Alert.alert(t('common.error'), t('auth.tokenNotFound'));
             }
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Login failed!';
-            Alert.alert('Error', msg);
+            const msg = error.response?.data?.message || t('auth.loginFailed');
+            Alert.alert(t('common.error'), msg);
         } finally {
             setLoading(false);
         }
@@ -67,19 +69,19 @@ export default function LoginScreen({ navigation }: Props) {
                         style={styles.logoIcon}
                     />
                     <Text style={styles.title}>
-                        LOGIN
+                        {t('auth.title')}
                     </Text>
                 </View>
 
                 {/* Form Inputs */}
                 <View style={styles.form}>
                     {/* USERNAME */}
-                    <Text style={styles.label}>USERNAME</Text>
+                    <Text style={styles.label}>{t('auth.username')}</Text>
                     <View style={styles.inputWrapper}>
                         <Feather name="credit-card" size={18} color="#6e7681" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Enter your registered ID"
+                            placeholder={t('auth.usernamePlaceholder')}
                             placeholderTextColor="#484f58"
                             value={userName}
                             onChangeText={setUsername}
@@ -89,7 +91,7 @@ export default function LoginScreen({ navigation }: Props) {
 
                     {/* PASSCODE */}
                     <View style={styles.labelRow}>
-                        <Text style={styles.label}>PASSCODE</Text>
+                        <Text style={styles.label}>{t('auth.passcode')}</Text>
 
                     </View>
                     <View style={styles.inputWrapper}>
@@ -110,8 +112,15 @@ export default function LoginScreen({ navigation }: Props) {
                             />
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => Alert.alert('Notice', 'Feature coming soon!')}>
-                        <Text style={styles.recoverText}>Recover?</Text>
+                    <TouchableOpacity
+                        onPress={() =>
+                            Alert.alert(
+                                t('common.notice'),
+                                t('auth.featureComingSoon')
+                            )
+                        }
+                    >
+                        <Text style={styles.recoverText}>{t('auth.recover')}</Text>
                     </TouchableOpacity>
                     {/* LOGIN BUTTON */}
                     <TouchableOpacity
@@ -124,16 +133,16 @@ export default function LoginScreen({ navigation }: Props) {
                         ) : (
                             <View style={styles.buttonContent}>
                                 <Feather name="log-in" size={18} color="#0d1117" style={{ marginRight: 8 }} />
-                                <Text style={styles.buttonText}>Login</Text>
+                                <Text style={styles.buttonText}>{t('auth.login')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
 
                     {/* FOOTER */}
                     <View style={styles.footerRow}>
-                        <Text style={styles.footerText}>New Hunter? </Text>
+                        <Text style={styles.footerText}>{t('auth.newHunter')} </Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                            <Text style={styles.signUpText}>Sign Up</Text>
+                            <Text style={styles.signUpText}>{t('auth.signUp')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

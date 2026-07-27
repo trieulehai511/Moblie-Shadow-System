@@ -1,4 +1,6 @@
 import React from 'react';
+import './src/i18n';
+
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -40,5 +42,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
 

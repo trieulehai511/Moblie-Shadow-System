@@ -1,0 +1,22 @@
+{
+  "auth": {
+    "title": "LOGIN",
+    "username": "USERNAME",
+    "usernamePlaceholder": "Enter your registered ID",
+    "passcode": "PASSCODE",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "newHunter": "New Hunter?",
+    "recover": "Recover?",
+    "missingCredentials": "Please enter both Username and Passcode",
+    "featureComingSoon": "Feature coming soon!",
+    "tokenNotFound": "Token not found in response",
+    "loginFailed": "Login failed!"
+  },
+  "common": {
+    "notice": "Notice",
+    "error": "Error",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  }
+}
