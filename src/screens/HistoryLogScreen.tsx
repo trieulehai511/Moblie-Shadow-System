@@ -24,6 +24,7 @@ import {
     QuestLogItem,
     QuestLogPage,
 } from '../models/QuestLogModel';
+import { useTranslation } from 'react-i18next';
 
 type TokenPayload = {
     sub: string;
@@ -62,6 +63,7 @@ const formatStatus = (status?: string) =>
         : status?.toUpperCase() || 'RECORDED';
 
 export default function HistoryLogScreen() {
+    const { t, i18n } = useTranslation();
     const [logs, setLogs] = useState<QuestLogItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -77,7 +79,7 @@ export default function HistoryLogScreen() {
 
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                throw new Error('Authentication token not found');
+                throw new Error(t('history.authTokenMissing'));
             }
 
             const hunterId = jwtDecode<TokenPayload>(token).sub;
@@ -99,13 +101,13 @@ export default function HistoryLogScreen() {
             setError(
                 fetchError.response?.data?.message ||
                 fetchError.message ||
-                'Failed to retrieve quest history'
+                t('history.loadFailed')
             );
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         void fetchLogs();
@@ -192,7 +194,7 @@ export default function HistoryLogScreen() {
                 <View style={styles.loadingIcon}>
                     <ActivityIndicator size="large" color="#72bce0" />
                 </View>
-                <Text style={styles.loadingText}>RETRIEVING SYSTEM LOGS...</Text>
+                <Text style={styles.loadingText}>{t('history.loading')}</Text>
             </View>
         );
     }
@@ -215,19 +217,19 @@ export default function HistoryLogScreen() {
                 ListHeaderComponent={
                     <View style={styles.historyHeader}>
                         <View style={styles.titleRow}>
-                            <Text style={styles.title}>History</Text>
+                            <Text style={styles.title}>{t('history.title')}</Text>
                             <Feather name="clock" size={20} color="#6f737c" />
                         </View>
 
                         <Text style={styles.subtitle}>
-                            Last {sections.length} day{sections.length === 1 ? '' : 's'}
+                            {t('history.lastDays', { count: sections.length })}
                             <Text style={styles.summarySeparator}>  ·  </Text>
                             <Text style={styles.activeSummary}>
-                                {activeDays} active
+                                {t('history.activeDays', { count: activeDays })}
                             </Text>
                             <Text style={styles.summarySeparator}>  ·  </Text>
                             <Text style={styles.missedSummary}>
-                                {missedDays} missed
+                                {t('history.missedDays', { count: missedDays })}
                             </Text>
                         </Text>
 
@@ -277,10 +279,8 @@ export default function HistoryLogScreen() {
                                     ]}
                                 >
                                     {didNothing
-                                        ? 'Missed'
-                                        : `${entryCount} ${
-                                            entryCount === 1 ? 'entry' : 'entries'
-                                        }`}
+                                        ? t('history.missed')
+                                        : t('history.entries', { count: entryCount })}
                                 </Text>
 
                                 {!didNothing ? (
@@ -315,9 +315,9 @@ export default function HistoryLogScreen() {
                                             {item.exerciseName}
                                         </Text>
                                         <Text style={styles.exerciseDetails}>
-                                            {item.completedSets} sets
+                                            {t('history.sets', { count: item.completedSets })}
                                             <Text style={styles.detailSeparator}>  ·  </Text>
-                                            {item.completedReps} reps
+                                            {t('history.reps', { count: item.completedReps })}
                                             <Text style={styles.detailSeparator}>  ·  </Text>
                                             <Text style={styles.statText}>
                                                 {item.targetStat || 'STAT'}

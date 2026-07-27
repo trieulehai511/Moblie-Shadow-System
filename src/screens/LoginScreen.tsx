@@ -18,6 +18,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import api from '../services/api';
+import i18n from '../i18n';
+import {
+    getMySettings,
+    toAppLanguage,
+} from '../services/settingService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -42,7 +47,24 @@ export default function LoginScreen({ navigation }: Props) {
 
             if (token) {
                 await AsyncStorage.setItem('token', token);
-                navigation.replace('MainApp', { screen: 'DailyQuest' });
+
+                try {
+                    const settings = await getMySettings();
+                    const language = toAppLanguage(settings.language);
+
+                    await i18n.changeLanguage(language);
+
+                    await AsyncStorage.setItem(
+                        'shadow_system_settings',
+                        JSON.stringify(settings)
+                    );
+                } catch (settingsError) {
+                    console.log('Load user settings error:', settingsError);
+                }
+
+                navigation.replace('MainApp', {
+                    screen: 'DailyQuest',
+                });
             } else {
                 Alert.alert(t('common.error'), t('auth.tokenNotFound'));
             }

@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MainApp'>;
 
 function MainAppScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
     navigation.replace('Login');
@@ -14,10 +16,10 @@ function MainAppScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Main App!</Text>
-      <Text style={styles.subtitle}>Đăng nhập thành công</Text>
+      <Text style={styles.title}>{t('main.welcome')}</Text>
+      <Text style={styles.subtitle}>{t('main.loginSuccess')}</Text>
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Đăng xuất</Text>
+        <Text style={styles.buttonText}>{t('profile.logout')}</Text>
       </TouchableOpacity>
     </View>
   );

@@ -25,6 +25,8 @@ import {
     TextStyle,
 } from 'react-native';
 import { HunterProfileResponse } from '../models/ProfileModel';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 
 
@@ -66,30 +68,30 @@ type ProfileInfoModal = {
 
 type AttributeLabel = 'STR' | 'AGI' | 'VIT';
 
-const attributeMessages: Record<AttributeLabel, string[]> = {
+const attributeMessageKeys: Record<AttributeLabel, string[]> = {
     STR: [
-        'Your strength is still far too weak.',
-        'Your combat power has improved, but it is not enough to overwhelm your enemies.',
-        'Your strength is beginning to become formidable.',
-        'Your strikes now surpass those of most ordinary Hunters.',
-        'Your strength is approaching its natural limit.',
-        'Extraordinary strength. Human limits no longer apply to you.',
+        'profile.attributeMessages.strength.weak',
+        'profile.attributeMessages.strength.improved',
+        'profile.attributeMessages.strength.formidable',
+        'profile.attributeMessages.strength.surpass',
+        'profile.attributeMessages.strength.limit',
+        'profile.attributeMessages.strength.extraordinary',
     ],
     AGI: [
-        'Your speed and reflexes are still far too slow.',
-        'You have become faster, but not fast enough to escape every threat.',
-        'Your reflexes are becoming remarkably sharp.',
-        'Your speed now surpasses that of most ordinary Hunters.',
-        'Your movement is approaching its natural limit.',
-        'Extraordinary speed. Almost no one can keep up with you.',
+        'profile.attributeMessages.agility.weak',
+        'profile.attributeMessages.agility.improved',
+        'profile.attributeMessages.agility.formidable',
+        'profile.attributeMessages.agility.surpass',
+        'profile.attributeMessages.agility.limit',
+        'profile.attributeMessages.agility.extraordinary',
     ],
     VIT: [
-        'Your stamina and endurance are still far too weak.',
-        'You have grown tougher, but you are not ready for a prolonged battle.',
-        'Your body can now endure severe trials.',
-        'Your endurance now surpasses that of most ordinary Hunters.',
-        'Your vitality is approaching its natural limit.',
-        'Extraordinary endurance. Your body barely knows fatigue.',
+        'profile.attributeMessages.vitality.weak',
+        'profile.attributeMessages.vitality.improved',
+        'profile.attributeMessages.vitality.formidable',
+        'profile.attributeMessages.vitality.surpass',
+        'profile.attributeMessages.vitality.limit',
+        'profile.attributeMessages.vitality.extraordinary',
     ],
 };
 
@@ -101,7 +103,7 @@ const getAttributeMessage = (attribute: AttributeLabel, value: number) => {
         value < 80 ? 3 :
         value < 100 ? 4 : 5;
 
-    return attributeMessages[attribute][level];
+    return i18n.t(attributeMessageKeys[attribute][level]);
 };
 
 type AttributeCardProps = {
@@ -181,6 +183,7 @@ function AttributeCard({
 }
 
 export default function ProfileScreen({ navigation }: any) {
+    const { t } = useTranslation();
     const [profile, setProfile] = useState<HunterProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -229,14 +232,14 @@ export default function ProfileScreen({ navigation }: any) {
         } catch (error: any) {
             console.log('Fetch profile error:', error);
             Alert.alert(
-                'Error',
-                error.response?.data?.message || 'Failed to load Hunter status!'
+                t('common.error'),
+                error.response?.data?.message || t('profile.loadFailed')
             );
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [t]);
 
     useFocusEffect(
         useCallback(() => {
@@ -275,21 +278,21 @@ export default function ProfileScreen({ navigation }: any) {
 
         try {
             await Clipboard.setStringAsync(profile.hunterCode);
-            Alert.alert('Copied', 'Hunter ID copied to clipboard.');
+            Alert.alert(t('profile.copied'), t('profile.copySuccess'));
         } catch (error) {
             console.log('Copy Hunter ID error:', error);
-            Alert.alert('Error', 'Unable to copy Hunter ID.');
+            Alert.alert(t('common.error'), t('profile.copyFailed'));
         }
     };
 
     const handleLogout = () => {
         Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
+            t('profile.logout'),
+            t('profile.logoutConfirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Logout',
+                    text: t('profile.logout'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -331,7 +334,7 @@ export default function ProfileScreen({ navigation }: any) {
         return (
             <View style={styles.centerContainer}>
                 <ActivityIndicator size="large" color="#ffffff" />
-                <Text style={styles.loadingText}>SYNCING HUNTER DATA...</Text>
+                <Text style={styles.loadingText}>{t('profile.loading')}</Text>
             </View>
         );
     }
@@ -385,10 +388,10 @@ export default function ProfileScreen({ navigation }: any) {
                         style={styles.editButton}
                         activeOpacity={0.8}
                         onPress={() =>
-                            Alert.alert('Edit Profile', 'This feature is not implemented yet.')
+                            Alert.alert(t('profile.edit'), t('common.featureComingSoon'))
                         }
                     >
-                        <Text style={styles.editButtonText}>Edit Profile</Text>
+                        <Text style={styles.editButtonText}>{t('profile.edit')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -397,13 +400,13 @@ export default function ProfileScreen({ navigation }: any) {
                         style={styles.summaryItem}
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
-                            title: 'RANK POINT',
+                            title: t('profile.rankPoint'),
                             shortLabel: 'RP',
-                            description: 'Points accumulated to determine your Hunter rank.',
+                            description: t('profile.rankPointDescription'),
                             value: currentRp,
                             message: nextRank
-                                ? `${rpToNextRank} RP remaining to reach Rank ${nextRank}.`
-                                : 'You have reached the highest rank.',
+                                ? t('profile.rpRemaining', { count: rpToNextRank, rank: nextRank })
+                                : t('profile.highestRank'),
                             color: '#72bce0',
                         })}
                     >
@@ -414,45 +417,45 @@ export default function ProfileScreen({ navigation }: any) {
                         style={styles.summaryItem}
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
-                            title: 'CURRENT STREAK',
-                            description: 'The number of consecutive days you completed an activity.',
+                            title: t('profile.currentStreak'),
+                            description: t('profile.currentStreakDescription'),
                             value: profile?.currentStreak ?? 0,
-                            message: 'Maintain your streak and prove your discipline.',
+                            message: t('profile.maintainStreak'),
                             color: '#f97316',
                         })}
                     >
                         <Text style={styles.summaryValue}>{profile?.currentStreak ?? 0}</Text>
-                        <Text style={styles.summaryLabel}> Streak</Text>
+                        <Text style={styles.summaryLabel}> {t('profile.streak')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.summaryItem}
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
-                            title: 'BEST STREAK',
-                            description: 'The longest activity streak you have ever achieved.',
+                            title: t('profile.bestStreak'),
+                            description: t('profile.bestStreakDescription'),
                             value: profile?.maxStreak ?? 0,
-                            message: 'Surpass the record you set for yourself.',
+                            message: t('profile.surpassRecord'),
                             color: '#eab308',
                         })}
                     >
                         <Text style={styles.summaryValue}>{profile?.maxStreak ?? 0}</Text>
-                        <Text style={styles.summaryLabel}> Best</Text>
+                        <Text style={styles.summaryLabel}> {t('profile.best')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.summaryItem}
                         activeOpacity={0.7}
                         onPress={() => setSelectedInfo({
-                            title: 'HUNTER RANK',
-                            description: 'Your rank represents your growth as a Hunter.',
+                            title: t('profile.hunterRank'),
+                            description: t('profile.hunterRankDescription'),
                             value: rank,
                             message: nextRank
-                                ? `Your next promotion is Rank ${nextRank}.`
-                                : 'You have reached the highest rank.',
+                                ? t('profile.nextPromotion', { rank: nextRank })
+                                : t('profile.highestRank'),
                             color: rankStyles[rank]?.color as string ?? '#9a6b19',
                         })}
                     >
                         <Text style={[styles.summaryValue, styles.rankText, rankStyles[rank] || rankStyles.E]}>{profile?.rankTier || 'E'}</Text>
-                        <Text style={styles.summaryLabel}> Rank</Text>
+                        <Text style={styles.summaryLabel}> {t('profile.rank')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -463,7 +466,7 @@ export default function ProfileScreen({ navigation }: any) {
                     accessibilityLabel={
                         nextRank
                             ? `Progress to Rank ${nextRank}`
-                            : 'Maximum rank reached'
+                            : t('profile.maximumRank')
                     }
                     accessibilityValue={{
                         min: 0,
@@ -471,14 +474,14 @@ export default function ProfileScreen({ navigation }: any) {
                         now: Math.round(rankProgressPercent),
                         text: nextRank
                             ? `${rpToNextRank} RP remaining`
-                            : 'Maximum rank reached',
+                            : t('profile.maximumRank'),
                     }}
 
 
                 >
                     <View style={styles.rankProgressHeader}>
                         <Text style={styles.rankProgressTitle}>
-                            RANK PROGRESS
+                            {t('profile.rankProgress')}
                         </Text>
                         <Text style={styles.rankProgressRanks}>
                             <Text
@@ -531,7 +534,7 @@ export default function ProfileScreen({ navigation }: any) {
                         <Text style={styles.remainingRpText}>
                             {nextRank
                                 ? `${rankProgressPercent.toFixed(2)}% • ${rpToNextRank} RP LEFT`
-                                : 'MAXIMUM RANK REACHED'}
+                                : t('profile.maximumRank')}
                         </Text>
                     </View>
 
@@ -539,7 +542,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={styles.profileDetails}>
                     <Text style={styles.fullName}>{displayName}</Text>
                     <Text style={styles.description}>
-                        Awakened Hunter <Text style={styles.dot}>•</Text> Age: {profile?.age ?? 'N/A'}
+                        {t('profile.awakenedHunter')} <Text style={styles.dot}>•</Text> {t('profile.age')}: {profile?.age ?? t('common.notAvailable')}
                     </Text>
                     <View style={styles.hunterCodeRow}>
                         <Text style={styles.hunterCode}>
@@ -551,7 +554,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 activeOpacity={0.65}
                                 hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
                                 accessibilityRole="button"
-                                accessibilityLabel="Copy Hunter ID"
+                                accessibilityLabel={t('profile.copyHunterId')}
                                 onPress={handleCopyHunterCode}
                             >
                                 <Feather name="copy" size={16} color="#72bce0" />
@@ -561,7 +564,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>COMBAT ATTRIBUTES</Text>
+                    <Text style={styles.sectionTitle}>{t('profile.combatAttributes')}</Text>
 
                     <View style={styles.attributeGrid}>
                         <AttributeCard
@@ -571,9 +574,9 @@ export default function ProfileScreen({ navigation }: any) {
                             gain={attributeReward?.strength}
                             rewardProgress={rewardProgress}
                             onPress={() => openAttributeInfo(
-                                'STRENGTH',
+                                t('profile.strength'),
                                 'STR',
-                                'Measures physical power and direct attack strength.',
+                                t('profile.strengthDescription'),
                                 profile?.strength ?? 0,
                                 '#ef4444'
                             )}
@@ -585,9 +588,9 @@ export default function ProfileScreen({ navigation }: any) {
                             gain={attributeReward?.agility}
                             rewardProgress={rewardProgress}
                             onPress={() => openAttributeInfo(
-                                'AGILITY',
+                                t('profile.agility'),
                                 'AGI',
-                                'Measures speed, reflexes, and evasion ability.',
+                                t('profile.agilityDescription'),
                                 profile?.agility ?? 0,
                                 '#22c55e'
                             )}
@@ -599,9 +602,9 @@ export default function ProfileScreen({ navigation }: any) {
                             gain={attributeReward?.vitality}
                             rewardProgress={rewardProgress}
                             onPress={() => openAttributeInfo(
-                                'VITALITY',
+                                t('profile.vitality'),
                                 'VIT',
-                                'Measures stamina, endurance, and physical resilience.',
+                                t('profile.vitalityDescription'),
                                 profile?.vitality ?? 0,
                                 '#f97316'
                             )}
@@ -612,13 +615,13 @@ export default function ProfileScreen({ navigation }: any) {
                             label="SHIELDS"
                             rewardProgress={rewardProgress}
                             onPress={() => setSelectedInfo({
-                                title: 'SHIELD',
+                                title: t('profile.shield'),
                                 shortLabel: 'SHIELD',
-                                description: 'A Shield protects your activity streak when you miss a mission.',
+                                description: t('profile.shieldDescription'),
                                 value: profile?.shieldCount ?? 0,
                                 message: (profile?.shieldCount ?? 0) > 0
-                                    ? 'Your streak is currently protected.'
-                                    : 'You do not have a Shield protecting your streak.',
+                                    ? t('profile.shieldProtected')
+                                    : t('profile.shieldUnprotected'),
                                 color: '#60a5fa',
                             })}
                         />
@@ -665,12 +668,12 @@ export default function ProfileScreen({ navigation }: any) {
                             ]}
                         />
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalEyebrow}>SYSTEM ANALYSIS</Text>
+                            <Text style={styles.modalEyebrow}>{t('profile.systemAnalysis')}</Text>
                             <TouchableOpacity
                                 style={styles.modalCloseButton}
                                 onPress={() => setSelectedInfo(null)}
                                 accessibilityRole="button"
-                                accessibilityLabel="Close information"
+                                accessibilityLabel={t('common.close')}
                             >
                                 <Feather name="x" size={19} color="#777982" />
                             </TouchableOpacity>
@@ -691,7 +694,7 @@ export default function ProfileScreen({ navigation }: any) {
                             <View style={styles.modalValueBox}>
                                 <View>
                                     <Text style={styles.modalValueCaption}>
-                                        CURRENT VALUE
+                                        {t('profile.currentValue')}
                                     </Text>
                                     {selectedInfo.shortLabel ? (
                                         <Text style={styles.modalValueLabel}>
@@ -713,7 +716,7 @@ export default function ProfileScreen({ navigation }: any) {
                             <View style={styles.modalMessageBox}>
                                 <View style={styles.modalMessageContent}>
                                     <Text style={styles.modalMessageLabel}>
-                                        SYSTEM VERDICT
+                                        {t('profile.systemVerdict')}
                                     </Text>
                                     <Text style={styles.modalMessage}>
                                         “{selectedInfo.message}”

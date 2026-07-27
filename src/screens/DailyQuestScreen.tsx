@@ -32,6 +32,7 @@ import {
     QuestItem,
     TrainingPace,
 } from '../models/QuestModel';
+import { useTranslation } from 'react-i18next';
 
 type TokenPayload = {
     sub: string;
@@ -54,12 +55,12 @@ const ATTRIBUTE_LABELS: Record<AttributeName, string> = {
     agility: 'AGI',
     vitality: 'VIT',
 };
-const COMPLETION_MESSAGES = [
-    'Your physical attributes have increased.',
-    'Today’s effort has been recorded.',
-    'You are stronger than you were yesterday.',
-    'Progress confirmed. Keep moving.',
-];
+const COMPLETION_MESSAGE_KEYS = [
+    'dailyQuest.completionMessages.attributes',
+    'dailyQuest.completionMessages.effort',
+    'dailyQuest.completionMessages.stronger',
+    'dailyQuest.completionMessages.progress',
+] as const;
 
 const PACE_OPTIONS: Array<{
     value: TrainingPace;
@@ -92,6 +93,7 @@ const getAttributes = (data: any): AttributeValues => {
 };
 
 export default function DailyQuestScreen() {
+    const { t, i18n } = useTranslation();
     const navigation = useNavigation<any>();
     const [questData, setQuestData] = useState<DailyQuestResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -180,7 +182,7 @@ export default function DailyQuestScreen() {
 
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                throw new Error('Authentication token not found.');
+                throw new Error(t('dailyQuest.authTokenMissing'));
             }
 
             const decoded = jwtDecode<TokenPayload>(token);
@@ -194,13 +196,13 @@ export default function DailyQuestScreen() {
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
-                'Unable to synchronize today’s quest.'
+                t('dailyQuest.syncFailed')
             );
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [sortQuest]);
+    }, [sortQuest, t]);
 
     useEffect(() => {
         fetchQuest();
@@ -394,13 +396,13 @@ export default function DailyQuestScreen() {
                 `/daily-quest/hunter/${hunterId}/generate`
             );
             const quest = unwrapQuest(response.data);
-            if (!quest) throw new Error('The System returned no quest data.');
+            if (!quest) throw new Error(t('dailyQuest.noQuestData'));
             setQuestData(sortQuest(quest));
         } catch (error: any) {
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
-                'Quest initialization failed.'
+                t('dailyQuest.initializeFailed')
             );
         } finally {
             setGenerating(false);
@@ -501,7 +503,7 @@ export default function DailyQuestScreen() {
                 `/daily-quest/item/${workoutItem.id}/start?pace=${selectedPace}`
             );
             const timing = response.data?.result;
-            if (!timing) throw new Error('Training timing was not returned.');
+            if (!timing) throw new Error(t('dailyQuest.noTiming'));
 
             const nextSession: ActiveQuestSession = {
                 itemId: workoutItem.id,
@@ -522,7 +524,7 @@ export default function DailyQuestScreen() {
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
-                'Unable to start this exercise.'
+                t('dailyQuest.startFailed')
             );
         } finally {
             setActionLoading(false);
@@ -543,7 +545,7 @@ export default function DailyQuestScreen() {
         } catch (error: any) {
             setErrorMessage(
                 error.response?.data?.message ||
-                'Unable to reset this exercise.'
+                t('dailyQuest.resetFailed')
             );
         } finally {
             setActionLoading(false);
@@ -569,16 +571,16 @@ export default function DailyQuestScreen() {
         };
 
         Alert.alert(
-            'Reset Exercise?',
-            `All saved progress for ${workoutItem.exerciseName} will be lost. This action cannot be undone.`,
+            t('dailyQuest.resetTitle'),
+            t('dailyQuest.resetConfirm', { name: workoutItem.exerciseName }),
             [
                 {
-                    text: 'Cancel',
+                    text: t('common.cancel'),
                     style: 'cancel',
                     onPress: resumeAfterCancel,
                 },
                 {
-                    text: 'Reset',
+                    text: t('dailyQuest.reset'),
                     style: 'destructive',
                     onPress: () => {
                         shouldResume = false;
@@ -678,19 +680,19 @@ export default function DailyQuestScreen() {
 
                 setCompletionReward({
                     message:
-                        COMPLETION_MESSAGES[
-                            Math.floor(Math.random() * COMPLETION_MESSAGES.length)
-                        ],
+                        t(COMPLETION_MESSAGE_KEYS[
+                            Math.floor(Math.random() * COMPLETION_MESSAGE_KEYS.length)
+                        ]),
                     attributeGains,
                 });
             } else {
-                Alert.alert('Exercise Complete', 'Progress successfully recorded.');
+                Alert.alert(t('dailyQuest.exerciseComplete'), t('dailyQuest.progressRecorded'));
             }
         } catch (error: any) {
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
-                'Completion could not be recorded.'
+                t('dailyQuest.completeFailed')
             );
         } finally {
             setActionLoading(false);
@@ -713,19 +715,19 @@ export default function DailyQuestScreen() {
             : 0;
     const questDateLabel = questData?.questDate
         ? new Date(`${questData.questDate}T00:00:00`)
-            .toLocaleDateString('en-US', {
+            .toLocaleDateString(i18n.resolvedLanguage, {
                 weekday: 'short',
                 month: 'short',
                 day: 'numeric',
             })
             .toUpperCase()
-        : 'TODAY';
+        : t('dailyQuest.today').toUpperCase();
 
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#72bce0" />
-                <Text style={styles.loadingText}>SYNCHRONIZING SYSTEM DATA...</Text>
+                <Text style={styles.loadingText}>{t('dailyQuest.loading')}</Text>
             </View>
         );
     }
@@ -746,7 +748,7 @@ export default function DailyQuestScreen() {
                         <Text style={styles.groupSubtitle}>{subtitle}</Text>
                     </View>
                     <Text style={bonus ? styles.bonusBadge : styles.requiredBadge}>
-                        {bonus ? 'Optional' : 'Required'}
+                        {bonus ? t('dailyQuest.optional') : t('dailyQuest.required')}
                     </Text>
                 </View>
 
@@ -809,7 +811,7 @@ export default function DailyQuestScreen() {
                                         size={14}
                                         color="#82b89d"
                                     />
-                                    <Text style={styles.doneButtonText}>DONE</Text>
+                                    <Text style={styles.doneButtonText}>{t('dailyQuest.done').toUpperCase()}</Text>
                                 </View>
                             ) : (
                                 <TouchableOpacity
@@ -820,8 +822,8 @@ export default function DailyQuestScreen() {
                                     <Text style={styles.trainButtonText}>
                                         {item.status === 'IN_PROGRESS' ||
                                         (item.accumulatedSeconds ?? 0) > 0
-                                            ? 'RESUME'
-                                            : 'TRAIN'}
+                                            ? t('dailyQuest.resume').toUpperCase()
+                                            : t('dailyQuest.train').toUpperCase()}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -848,7 +850,7 @@ export default function DailyQuestScreen() {
             >
                 <View style={styles.pageHeader}>
                     <View>
-                        <Text style={styles.pageTitle}>Daily quest</Text>
+                        <Text style={styles.pageTitle}>{t('dailyQuest.title')}</Text>
                         <Text style={styles.pageDate}>{questDateLabel}</Text>
                     </View>
                     <Feather name="check-circle" size={20} color="#6f737c" />
@@ -856,7 +858,7 @@ export default function DailyQuestScreen() {
 
                 <View style={styles.statusCard}>
                     <View style={styles.progressHeader}>
-                        <Text style={styles.progressLabel}>Today</Text>
+                        <Text style={styles.progressLabel}>{t('dailyQuest.today')}</Text>
                         <Text style={styles.progressValue}>
                             {completedMain} of {mainItems.length}
                         </Text>
@@ -871,15 +873,15 @@ export default function DailyQuestScreen() {
                     </View>
                     <Text style={styles.progressHint}>
                         {questData?.completed
-                            ? 'Completed'
-                            : `${Math.max(0, mainItems.length - completedMain)} remaining`}
+                            ? t('dailyQuest.completed')
+                            : t('dailyQuest.remaining', { count: Math.max(0, mainItems.length - completedMain) })}
                     </Text>
                 </View>
 
                 <View style={styles.questCard}>
                     <View style={styles.questHeader}>
                         <View>
-                            <Text style={styles.questTitle}>Exercises</Text>
+                            <Text style={styles.questTitle}>{t('dailyQuest.exercises')}</Text>
                             <Text style={styles.questSubtitle}>
                                 Complete the required exercises for today.
                             </Text>
@@ -898,11 +900,11 @@ export default function DailyQuestScreen() {
                             <View style={styles.emptyIcon}>
                                 <Feather name="clock" size={28} color="#72bce0" />
                             </View>
-                            <Text style={styles.emptyTitle}>NO EXERCISES TODAY</Text>
+                            <Text style={styles.emptyTitle}>{t('dailyQuest.emptyTitle')}</Text>
                             <Text style={styles.emptyDescription}>
                                 {questData?.restDay
-                                    ? 'Today is a rest day. Request a new challenge anyway?'
-                                    : 'No quest has been assigned. Initialize today’s directive now.'}
+                                    ? t('dailyQuest.restDay')
+                                    : t('dailyQuest.noAssignedQuest')}
                             </Text>
                             <TouchableOpacity
                                 style={[
@@ -919,21 +921,21 @@ export default function DailyQuestScreen() {
                                 )}
                                 <Text style={styles.generateButtonText}>
                                     {generating
-                                        ? 'INITIALIZING...'
-                                        : 'INITIALIZE TODAY’S QUEST'}
+                                        ? t('dailyQuest.initializing')
+                                        : t('dailyQuest.initializeToday')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
                     ) : (
                         <>
                             {renderQuestGroup(
-                                'Main exercises',
-                                'Required for today',
+                                t('dailyQuest.mainExercises'),
+                                t('dailyQuest.requiredToday'),
                                 mainItems
                             )}
                             {renderQuestGroup(
-                                'Bonus',
-                                `${completedBonus} of ${bonusItems.length} complete`,
+                                t('dailyQuest.bonus'),
+                                t('dailyQuest.bonusProgress', { completed: completedBonus, total: bonusItems.length }),
                                 bonusItems,
                                 true
                             )}
@@ -963,8 +965,8 @@ export default function DailyQuestScreen() {
                             <Feather name="arrow-up" size={24} color="#9ac3aa" />
                         </View>
 
-                        <Text style={styles.rewardEyebrow}>QUEST COMPLETE</Text>
-                        <Text style={styles.rewardTitle}>Attributes increased</Text>
+                        <Text style={styles.rewardEyebrow}>{t('dailyQuest.questComplete')}</Text>
+                        <Text style={styles.rewardTitle}>{t('dailyQuest.attributesIncreased')}</Text>
                         <Text style={styles.rewardMessage}>
                             {completionReward?.message}
                         </Text>
@@ -998,7 +1000,7 @@ export default function DailyQuestScreen() {
                                         0) > 0
                             ) ? (
                                 <Text style={styles.rewardAppliedText}>
-                                    Rewards were applied to your profile.
+                                    {t('dailyQuest.rewardsApplied')}
                                 </Text>
                             ) : null}
                         </View>
@@ -1022,7 +1024,7 @@ export default function DailyQuestScreen() {
                                 }}
                             >
                                 <Text style={styles.viewProfileButtonText}>
-                                    View profile
+                                    {t('dailyQuest.viewProfile')}
                                 </Text>
                             </TouchableOpacity>
 
@@ -1030,7 +1032,7 @@ export default function DailyQuestScreen() {
                                 style={styles.rewardDoneButton}
                                 onPress={() => setCompletionReward(null)}
                             >
-                                <Text style={styles.rewardDoneButtonText}>Done</Text>
+                                <Text style={styles.rewardDoneButtonText}>{t('dailyQuest.done')}</Text>
                             </TouchableOpacity>
                         </View>
                     </Animated.View>
@@ -1055,13 +1057,13 @@ export default function DailyQuestScreen() {
                                 </TouchableOpacity>
 
                                 <Text style={styles.categoryBadge}>
-                                    {detailItem?.category || 'EXERCISE'}
+                                    {detailItem?.category || t('dailyQuest.exerciseCategory')}
                                 </Text>
                                 <Text style={styles.modalTitle}>
                                     {detailItem?.exerciseName}
                                 </Text>
                                 <Text style={styles.modalTarget}>
-                                    Target Stat:{' '}
+                                    {t('dailyQuest.targetStat')}:{' '}
                                     <Text style={styles.accentText}>
                                         {detailItem?.targetStat}
                                     </Text>
@@ -1076,24 +1078,24 @@ export default function DailyQuestScreen() {
                                 ) : null}
 
                                 <Text style={styles.detailHeading}>
-                                    EXERCISE DESCRIPTION
+                                    {t('dailyQuest.exerciseDescription')}
                                 </Text>
                                 <Text style={styles.detailText}>
                                     {detailItem?.description ||
-                                        'No description is available for this exercise.'}
+                                        t('dailyQuest.noDescription')}
                                 </Text>
 
                                 <View style={styles.detailStats}>
                                     <View style={styles.detailStatCard}>
-                                        <Text style={styles.detailStatLabel}>TARGET SETS</Text>
+                                        <Text style={styles.detailStatLabel}>{t('dailyQuest.targetSets')}</Text>
                                         <Text style={styles.detailStatValue}>
-                                            {detailItem?.targetSets} Sets
+                                            {t('dailyQuest.sets', { count: detailItem?.targetSets })}
                                         </Text>
                                     </View>
                                     <View style={styles.detailStatCard}>
-                                        <Text style={styles.detailStatLabel}>TARGET REPS</Text>
+                                        <Text style={styles.detailStatLabel}>{t('dailyQuest.targetReps')}</Text>
                                         <Text style={styles.detailStatValue}>
-                                            {detailItem?.targetReps} Reps
+                                            {t('dailyQuest.reps', { count: detailItem?.targetReps })}
                                         </Text>
                                     </View>
                                 </View>
@@ -1106,7 +1108,7 @@ export default function DailyQuestScreen() {
                                                 styles.warningText,
                                             ]}
                                         >
-                                            SAFETY NOTES
+                                            {t('dailyQuest.safetyNotes')}
                                         </Text>
                                         <Text style={styles.detailText}>
                                             {detailItem.safetyTips}
@@ -1129,7 +1131,7 @@ export default function DailyQuestScreen() {
                                             color="#72bce0"
                                         />
                                         <Text style={styles.videoButtonText}>
-                                            WATCH TUTORIAL VIDEO
+                                            {t('dailyQuest.watchTutorial')}
                                         </Text>
                                     </TouchableOpacity>
                                 ) : null}
@@ -1157,27 +1159,26 @@ export default function DailyQuestScreen() {
                                 </TouchableOpacity>
 
                                 <Text style={styles.categoryBadge}>
-                                    {workoutItem?.category || 'TRAINING'}
+                                    {workoutItem?.category || t('dailyQuest.training')}
                                 </Text>
                                 <Text style={styles.modalTitle}>
                                     {workoutItem?.exerciseName}
                                 </Text>
                                 <Text style={styles.modalTarget}>
-                                    Target:{' '}
+                                    {t('dailyQuest.target')}:{' '}
                                     <Text style={styles.accentText}>
-                                        {workoutItem?.targetSets} Sets ×{' '}
-                                        {workoutItem?.targetReps} Reps
+                                        {t('dailyQuest.sets', { count: workoutItem?.targetSets })} ×{' '}
+                                        {t('dailyQuest.reps', { count: workoutItem?.targetReps })}
                                     </Text>
                                 </Text>
 
                                 {!session ? (
                                     <View style={styles.paceSection}>
                                         <Text style={styles.detailHeading}>
-                                            SELECT TRAINING INTENSITY
+                                            {t('dailyQuest.selectIntensity')}
                                         </Text>
                                         <Text style={styles.detailText}>
-                                            The System will calculate your training and
-                                            recovery intervals.
+                                            {t('dailyQuest.intensityDescription')}
                                         </Text>
 
                                         {PACE_OPTIONS.map(option => (
@@ -1203,10 +1204,10 @@ export default function DailyQuestScreen() {
                                                 />
                                                 <View style={styles.paceText}>
                                                     <Text style={styles.paceTitle}>
-                                                        {option.title}
+                                                        {t(`dailyQuest.pace.${option.value}.title`)}
                                                     </Text>
                                                     <Text style={styles.paceSubtitle}>
-                                                        {option.subtitle}
+                                                        {t(`dailyQuest.pace.${option.value}.subtitle`)}
                                                     </Text>
                                                 </View>
                                                 {selectedPace === option.value ? (
@@ -1241,8 +1242,8 @@ export default function DailyQuestScreen() {
                                             )}
                                             <Text style={styles.primaryButtonText}>
                                                 {actionLoading
-                                                    ? 'ACTIVATING...'
-                                                    : 'START TRAINING'}
+                                                    ? t('dailyQuest.activating')
+                                                    : t('dailyQuest.startTraining')}
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
@@ -1257,11 +1258,11 @@ export default function DailyQuestScreen() {
                                                 ]}
                                             >
                                                 {session.phase === 'training'
-                                                    ? 'TRAINING'
-                                                    : 'RESTING'}
+                                                    ? t('dailyQuest.training')
+                                                    : t('dailyQuest.resting')}
                                             </Text>
                                             <Text style={styles.setText}>
-                                                SET {session.currentSet}/
+                                                {t('dailyQuest.set')} {session.currentSet}/
                                                 {workoutItem?.targetSets}
                                             </Text>
                                         </View>
@@ -1278,10 +1279,10 @@ export default function DailyQuestScreen() {
                                             </Text>
                                             <Text style={styles.timerLabel}>
                                                 {session.isFinishing
-                                                    ? 'SYNCING'
+                                                    ? t('dailyQuest.syncing')
                                                     : session.phase === 'training'
-                                                        ? 'TRAINING'
-                                                        : 'RESTING'}
+                                                        ? t('dailyQuest.training')
+                                                        : t('dailyQuest.resting')}
                                             </Text>
                                         </View>
 
@@ -1295,10 +1296,10 @@ export default function DailyQuestScreen() {
                                                 />
                                                 <View style={styles.savingStatusText}>
                                                     <Text style={styles.savingTitle}>
-                                                        SAVING WORKOUT...
+                                                        {t('dailyQuest.savingWorkout')}
                                                     </Text>
                                                     <Text style={styles.savingSubtitle}>
-                                                        Progress will sync automatically.
+                                                        {t('dailyQuest.autoSync')}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -1332,8 +1333,8 @@ export default function DailyQuestScreen() {
                                                         }
                                                     >
                                                         {session.isPaused
-                                                            ? 'RESUME'
-                                                            : 'PAUSE'}
+                                                            ? t('dailyQuest.resume').toUpperCase()
+                                                            : t('dailyQuest.pause').toUpperCase()}
                                                     </Text>
                                                 </TouchableOpacity>
                                             ) : null}
@@ -1354,7 +1355,7 @@ export default function DailyQuestScreen() {
                                                     color="#f87171"
                                                 />
                                                 <Text style={styles.resetButtonText}>
-                                                    RESET
+                                                    {t('dailyQuest.reset').toUpperCase()}
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>
@@ -1382,8 +1383,8 @@ export default function DailyQuestScreen() {
                                                     style={styles.completeButtonText}
                                                 >
                                                     {actionLoading
-                                                        ? 'RECORDING...'
-                                                        : 'COMPLETE & CLAIM REWARD'}
+                                                        ? t('dailyQuest.recording')
+                                                        : t('dailyQuest.completeAndClaim')}
                                                 </Text>
                                             </TouchableOpacity>
                                         ) : null}

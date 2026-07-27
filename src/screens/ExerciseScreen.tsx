@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function ExerciseScreen() {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>EXERCISE SCREEN</Text>
+      <Text style={styles.text}>{t('exercise.title')}</Text>
     </View>
   );
 }

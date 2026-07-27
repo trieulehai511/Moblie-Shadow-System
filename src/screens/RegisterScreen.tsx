@@ -2,10 +2,12 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, TextInput, Alert, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import api from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 
 
 function RegisterScreen({ navigation }: any) {
+  const { t } = useTranslation();
 
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -19,16 +21,16 @@ function RegisterScreen({ navigation }: any) {
 
   const handleRegister = async () => {
     if (userName.trim() === '' || password.trim() === '' || confirmPassword.trim() === '' || fullName.trim() === '' || age.trim() === '') {
-      Alert.alert('Notice', 'Please fill in all fields');
+      Alert.alert(t('common.notice'), t('register.fillAllFields'));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Notice', 'Passwords do not match');
+      Alert.alert(t('common.notice'), t('register.passwordMismatch'));
       return;
     }
 
     if (isNaN(Number(age)) || Number(age) <= 0) {
-      Alert.alert('Notice', 'Please enter a valid age');
+      Alert.alert(t('common.notice'), t('register.invalidAge'));
       return;
     }
     // if (Number(age) < 16) {
@@ -39,13 +41,13 @@ function RegisterScreen({ navigation }: any) {
     try {
       const response = await api.post('/hunter', { userName, password, profile: { fullName, age: Number(age) } });
       if (response.status === 200 || response.status === 201 || response.data?.code === 200) {
-        Alert.alert('Success', 'Registration successful! Please log in.');
+        Alert.alert(t('common.success'), t('register.success'));
         navigation.replace('Login');
       }
 
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Registration failed!';
-      Alert.alert('Error', msg);
+      const msg = error.response?.data?.message || t('register.failed');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -68,24 +70,24 @@ function RegisterScreen({ navigation }: any) {
           // style={styles.logoIcon}
           />
           <Text style={styles.title}>
-            REGISTER
+            {t('register.title')}
           </Text>
         </View>
         {/* Form inputs */}
         <View style={styles.form}>
-          <Text style={styles.label}>Hunter Username</Text>
+          <Text style={styles.label}>{t('register.username')}</Text>
           <View style={styles.inputWrapper}>
 
             <TextInput
               placeholderTextColor="#484f58"
               style={styles.input}
               autoCapitalize="none"
-              placeholder="Enter your Hunter Username"
+              placeholder={t('register.usernamePlaceholder')}
               value={userName}
               onChangeText={setUserName}
             />
           </View>
-          <Text style={styles.label}>Hunter Passcode</Text>
+          <Text style={styles.label}>{t('register.passcode')}</Text>
           <View style={styles.inputWrapper}>
 
             <TextInput
@@ -105,7 +107,7 @@ function RegisterScreen({ navigation }: any) {
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.label}>Confirm Passcode</Text>
+          <Text style={styles.label}>{t('register.confirmPasscode')}</Text>
           <View style={styles.inputWrapper}>
 
             <TextInput
@@ -125,23 +127,23 @@ function RegisterScreen({ navigation }: any) {
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.label}>Full Name</Text>
+          <Text style={styles.label}>{t('register.fullName')}</Text>
           <View style={styles.inputWrapper}>
 
             <TextInput
-              placeholder="Enter your full name"
+              placeholder={t('register.fullNamePlaceholder')}
               value={fullName}
               onChangeText={setFullName}
               style={styles.input}
               placeholderTextColor="#484f58"
             />
           </View>
-          <Text style={styles.label}>Age</Text>
+          <Text style={styles.label}>{t('register.age')}</Text>
           <View style={styles.inputWrapper}>
 
             <TextInput
               keyboardType="number-pad"
-              placeholder="Enter your age"
+              placeholder={t('register.agePlaceholder')}
               maxLength={3}
               value={age}
               onChangeText={(text) => setAge(text.replace(/[^0-9]/g, ''))}
@@ -153,13 +155,13 @@ function RegisterScreen({ navigation }: any) {
             {loading ? (
               <ActivityIndicator color="#0d1117" />
             ) : (
-              <Text style={styles.buttonText}>Register</Text>
+              <Text style={styles.buttonText}>{t('register.submit')}</Text>
             )}
           </TouchableOpacity>
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>{t('register.hasAccount')} </Text>
             <TouchableOpacity onPress={() => navigation.replace('Login')}>
-              <Text style={styles.registerText}>Sign in</Text>
+              <Text style={styles.registerText}>{t('register.signIn')}</Text>
             </TouchableOpacity>
           </View>
         </View>
