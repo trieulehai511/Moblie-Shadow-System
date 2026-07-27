@@ -22,6 +22,7 @@ export type ThemeColors = {
   text: string;
   mutedText: string;
   accent: string;
+  success: string;
   danger: string;
   contrastText: string;
 };
@@ -35,6 +36,7 @@ const palettes: Record<ThemeMode, ThemeColors> = {
     text: '#f0f6fc',
     mutedText: '#8b949e',
     accent: '#72bce0',
+    success: '#6ee7b7',
     danger: '#f87171',
     contrastText: '#071017',
   },
@@ -46,6 +48,7 @@ const palettes: Record<ThemeMode, ThemeColors> = {
     text: '#17202a',
     mutedText: '#647383',
     accent: '#1976a3',
+    success: '#15803d',
     danger: '#c43d3d',
     contrastText: '#ffffff',
   },

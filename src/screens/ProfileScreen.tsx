@@ -1833,25 +1833,25 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     },
 
     themeColorLight: {
-        backgroundColor: themeColor(colors, '#f8fafc'),
-        borderColor: themeColor(colors, '#cbd5e1'),
+        backgroundColor: '#f8fafc',
+        borderColor: '#cbd5e1',
     },
 
     themeColorDark: {
-        backgroundColor: themeColor(colors, '#080a0f'),
-        borderColor: themeColor(colors, '#4b5563'),
+        backgroundColor: '#080a0f',
+        borderColor: '#4b5563',
     },
 
     themeColorSystemLight: {
         width: '50%',
         height: '100%',
-        backgroundColor: themeColor(colors, '#f8fafc'),
+        backgroundColor: '#f8fafc',
     },
 
     themeColorSystemDark: {
         width: '50%',
         height: '100%',
-        backgroundColor: themeColor(colors, '#080a0f'),
+        backgroundColor: '#080a0f',
     },
 
     settingsLogoutButton: {

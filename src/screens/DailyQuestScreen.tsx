@@ -1284,10 +1284,22 @@ export default function DailyQuestScreen() {
                                                     styles.timerCircleRest,
                                             ]}
                                         >
-                                            <Text style={styles.timerValue}>
+                                            <Text
+                                                style={[
+                                                    styles.timerValue,
+                                                    session.phase === 'rest' &&
+                                                        styles.timerValueRest,
+                                                ]}
+                                            >
                                                 {formatTime(session.timeLeft)}
                                             </Text>
-                                            <Text style={styles.timerLabel}>
+                                            <Text
+                                                style={[
+                                                    styles.timerLabel,
+                                                    session.phase === 'rest' &&
+                                                        styles.timerLabelRest,
+                                                ]}
+                                            >
                                                 {session.isFinishing
                                                     ? t('dailyQuest.syncing')
                                                     : session.phase === 'training'
@@ -2050,25 +2062,44 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         alignItems: 'center',
     },
     phaseBadge: {
-        color: themeColor(colors, '#aeb2ba'),
-        fontSize: 10,
-        fontWeight: '600',
+        color: colors.accent,
+        fontSize: 11,
+        fontWeight: '800',
+        letterSpacing: 0.8,
+        paddingHorizontal: 11,
+        paddingVertical: 6,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: colors.accent,
+        backgroundColor: 'rgba(25,118,163,0.12)',
     },
-    restBadge: { color: themeColor(colors, '#84998f') },
+    restBadge: {
+        color: colors.success,
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.14)',
+    },
     setText: { color: colors.mutedText, fontSize: 11, fontWeight: '800' },
     timerCircle: {
         width: 190,
         height: 190,
         borderRadius: 95,
         borderWidth: 2,
-        borderColor: themeColor(colors, '#555b65'),
+        borderColor: colors.accent,
         alignSelf: 'center',
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 25,
-        backgroundColor: themeColor(colors, '#0a0b0f'),
+        backgroundColor: 'rgba(25,118,163,0.10)',
+        shadowColor: colors.accent,
+        shadowOpacity: 0.22,
+        shadowRadius: 18,
+        elevation: 4,
     },
-    timerCircleRest: { borderColor: themeColor(colors, '#667d72') },
+    timerCircleRest: {
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.12)',
+        shadowColor: '#22c55e',
+    },
     timerValue: {
         color: colors.text,
         fontSize: 48,
@@ -2076,11 +2107,17 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         letterSpacing: 1,
     },
     timerLabel: {
-        color: colors.mutedText,
-        fontSize: 10,
-        fontWeight: '600',
-        letterSpacing: 0.8,
-        marginTop: 3,
+        color: colors.accent,
+        fontSize: 11,
+        fontWeight: '800',
+        letterSpacing: 1.2,
+        marginTop: 5,
+    },
+    timerValueRest: {
+        color: colors.success,
+    },
+    timerLabelRest: {
+        color: colors.success,
     },
     savingStatus: {
         flexDirection: 'row',
