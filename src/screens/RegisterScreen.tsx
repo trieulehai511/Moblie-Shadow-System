@@ -3,11 +3,18 @@ import React from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, TextInput, Alert, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
+import {
+  ThemeColors,
+  themeColor,
+  useAppTheme,
+} from '../theme/ThemeContext';
 
 
 
 function RegisterScreen({ navigation }: any) {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -57,7 +64,7 @@ function RegisterScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -66,10 +73,10 @@ function RegisterScreen({ navigation }: any) {
           <MaterialCommunityIcons
             name="boxing-glove"
             size={42}
-            color="#ffffff"
+            color={themeColor(colors, '#ffffff')}
           // style={styles.logoIcon}
           />
-          <Text style={styles.title}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {t('register.title')}
           </Text>
         </View>
@@ -79,7 +86,7 @@ function RegisterScreen({ navigation }: any) {
           <View style={styles.inputWrapper}>
 
             <TextInput
-              placeholderTextColor="#484f58"
+              placeholderTextColor={themeColor(colors, '#484f58')}
               style={styles.input}
               autoCapitalize="none"
               placeholder={t('register.usernamePlaceholder')}
@@ -91,7 +98,7 @@ function RegisterScreen({ navigation }: any) {
           <View style={styles.inputWrapper}>
 
             <TextInput
-              placeholderTextColor="#484f58"
+              placeholderTextColor={themeColor(colors, '#484f58')}
               style={styles.input}
               placeholder="••••••••"
               value={password}
@@ -103,7 +110,7 @@ function RegisterScreen({ navigation }: any) {
               <Feather
                 name={showPassword ? 'eye-off' : 'eye'}
                 size={18}
-                color="#6e7681"
+                color={themeColor(colors, '#6e7681')}
               />
             </TouchableOpacity>
           </View>
@@ -114,7 +121,7 @@ function RegisterScreen({ navigation }: any) {
               style={styles.input}
               placeholder="••••••••"
               value={confirmPassword}
-              placeholderTextColor="#484f58"
+              placeholderTextColor={themeColor(colors, '#484f58')}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showPasswordConfirm}
             />
@@ -123,7 +130,7 @@ function RegisterScreen({ navigation }: any) {
               <Feather
                 name={showPasswordConfirm ? 'eye-off' : 'eye'}
                 size={18}
-                color="#6e7681"
+                color={themeColor(colors, '#6e7681')}
               />
             </TouchableOpacity>
           </View>
@@ -135,7 +142,7 @@ function RegisterScreen({ navigation }: any) {
               value={fullName}
               onChangeText={setFullName}
               style={styles.input}
-              placeholderTextColor="#484f58"
+              placeholderTextColor={themeColor(colors, '#484f58')}
             />
           </View>
           <Text style={styles.label}>{t('register.age')}</Text>
@@ -148,12 +155,12 @@ function RegisterScreen({ navigation }: any) {
               value={age}
               onChangeText={(text) => setAge(text.replace(/[^0-9]/g, ''))}
               style={styles.input}
-              placeholderTextColor="#484f58"
+              placeholderTextColor={themeColor(colors, '#484f58')}
             />
           </View>
           <TouchableOpacity style={styles.button} disabled={loading} onPress={handleRegister}>
             {loading ? (
-              <ActivityIndicator color="#0d1117" />
+              <ActivityIndicator color={themeColor(colors, '#0d1117')} />
             ) : (
               <Text style={styles.buttonText}>{t('register.submit')}</Text>
             )}
@@ -171,10 +178,10 @@ function RegisterScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#080a0f', // Đen chuẩn tối giản
+    backgroundColor: themeColor(colors, '#080a0f'), // Đen chuẩn tối giản
   },
   scrollContent: {
     flexGrow: 1,
@@ -183,7 +190,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   text: {
-    color: '#fff',
+    color: themeColor(colors, '#fff'),
     fontSize: 20,
   },
   headerContainer: {
@@ -196,11 +203,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#ffffff',
+    color: themeColor(colors, '#ffffff'),
     letterSpacing: 2,
   },
   cursor: {
-    color: '#ffffff',
+    color: themeColor(colors, '#ffffff'),
     fontWeight: '300',
   },
   form: {
@@ -213,14 +220,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   label: {
-    color: '#8b949e',
+    color: themeColor(colors, '#8b949e'),
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   recoverText: {
-    color: '#8b949e',
+    color: themeColor(colors, '#8b949e'),
     fontSize: 12,
     marginTop: 12,
     alignSelf: 'flex-end',
@@ -228,9 +235,9 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f131a',
+    backgroundColor: themeColor(colors, '#0f131a'),
     borderWidth: 1,
-    borderColor: '#21262d',
+    borderColor: themeColor(colors, '#21262d'),
     borderRadius: 8,
     paddingHorizontal: 14,
     height: 48,
@@ -241,11 +248,11 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#ffffff',
+    color: themeColor(colors, '#ffffff'),
     fontSize: 14,
   },
   button: {
-    backgroundColor: '#f0f6fc', // Nút trắng nổi bật
+    backgroundColor: themeColor(colors, '#f0f6fc'), // Nút trắng nổi bật
     borderRadius: 8,
     height: 48,
     justifyContent: 'center',
@@ -257,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#0d1117',
+    color: themeColor(colors, '#0d1117'),
     fontWeight: '700',
     fontSize: 15,
   },
@@ -268,11 +275,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   footerText: {
-    color: '#8b949e',
+    color: themeColor(colors, '#8b949e'),
     fontSize: 13,
   },
   registerText: {
-    color: '#ffffff',
+    color: themeColor(colors, '#ffffff'),
     fontSize: 13,
     fontWeight: '700',
   },

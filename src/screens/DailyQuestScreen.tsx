@@ -33,6 +33,11 @@ import {
     TrainingPace,
 } from '../models/QuestModel';
 import { useTranslation } from 'react-i18next';
+import {
+    ThemeColors,
+    themeColor,
+    useAppTheme,
+} from '../theme/ThemeContext';
 
 type TokenPayload = {
     sub: string;
@@ -94,6 +99,8 @@ const getAttributes = (data: any): AttributeValues => {
 
 export default function DailyQuestScreen() {
     const { t, i18n } = useTranslation();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const navigation = useNavigation<any>();
     const [questData, setQuestData] = useState<DailyQuestResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -725,8 +732,8 @@ export default function DailyQuestScreen() {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#72bce0" />
+            <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+                <ActivityIndicator size="large" color={themeColor(colors, '#72bce0')} />
                 <Text style={styles.loadingText}>{t('dailyQuest.loading')}</Text>
             </View>
         );
@@ -772,7 +779,7 @@ export default function DailyQuestScreen() {
                                 ]}
                             >
                                 {item.completed ? (
-                                    <Feather name="check" size={13} color="#82b89d" />
+                                    <Feather name="check" size={13} color={themeColor(colors, '#82b89d')} />
                                 ) : (
                                     <View
                                         style={[
@@ -801,7 +808,7 @@ export default function DailyQuestScreen() {
                                 style={styles.infoButton}
                                 onPress={() => setDetailItem(item)}
                             >
-                                <Feather name="info" size={16} color="#717680" />
+                                <Feather name="info" size={16} color={themeColor(colors, '#717680')} />
                             </TouchableOpacity>
 
                             {item.completed ? (
@@ -809,7 +816,7 @@ export default function DailyQuestScreen() {
                                     <Feather
                                         name="check-circle"
                                         size={14}
-                                        color="#82b89d"
+                                        color={themeColor(colors, '#82b89d')}
                                     />
                                     <Text style={styles.doneButtonText}>{t('dailyQuest.done').toUpperCase()}</Text>
                                 </View>
@@ -835,16 +842,19 @@ export default function DailyQuestScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <SafeAreaView
+            style={[styles.safeArea, { backgroundColor: colors.background }]}
+            edges={['top']}
+        >
             <ScrollView
-                style={styles.container}
+                style={[styles.container, { backgroundColor: colors.background }]}
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        tintColor="#72bce0"
+                        tintColor={themeColor(colors, '#72bce0')}
                     />
                 }
             >
@@ -853,7 +863,7 @@ export default function DailyQuestScreen() {
                         <Text style={styles.pageTitle}>{t('dailyQuest.title')}</Text>
                         <Text style={styles.pageDate}>{questDateLabel}</Text>
                     </View>
-                    <Feather name="check-circle" size={20} color="#6f737c" />
+                    <Feather name="check-circle" size={20} color={themeColor(colors, '#6f737c')} />
                 </View>
 
                 <View style={styles.statusCard}>
@@ -890,7 +900,7 @@ export default function DailyQuestScreen() {
 
                     {errorMessage && !workoutItem ? (
                         <View style={styles.errorBox}>
-                            <Feather name="alert-triangle" size={16} color="#f87171" />
+                            <Feather name="alert-triangle" size={16} color={themeColor(colors, '#f87171')} />
                             <Text style={styles.errorText}>{errorMessage}</Text>
                         </View>
                     ) : null}
@@ -898,7 +908,7 @@ export default function DailyQuestScreen() {
                     {!questData?.questItems?.length ? (
                         <View style={styles.emptyState}>
                             <View style={styles.emptyIcon}>
-                                <Feather name="clock" size={28} color="#72bce0" />
+                                <Feather name="clock" size={28} color={themeColor(colors, '#72bce0')} />
                             </View>
                             <Text style={styles.emptyTitle}>{t('dailyQuest.emptyTitle')}</Text>
                             <Text style={styles.emptyDescription}>
@@ -915,9 +925,9 @@ export default function DailyQuestScreen() {
                                 onPress={handleGenerateQuest}
                             >
                                 {generating ? (
-                                    <ActivityIndicator size="small" color="#071017" />
+                                    <ActivityIndicator size="small" color={themeColor(colors, '#071017')} />
                                 ) : (
-                                    <Feather name="zap" size={17} color="#071017" />
+                                    <Feather name="zap" size={17} color={themeColor(colors, '#071017')} />
                                 )}
                                 <Text style={styles.generateButtonText}>
                                     {generating
@@ -962,7 +972,7 @@ export default function DailyQuestScreen() {
                         ]}
                     >
                         <View style={styles.rewardIcon}>
-                            <Feather name="arrow-up" size={24} color="#9ac3aa" />
+                            <Feather name="arrow-up" size={24} color={themeColor(colors, '#9ac3aa')} />
                         </View>
 
                         <Text style={styles.rewardEyebrow}>{t('dailyQuest.questComplete')}</Text>
@@ -1053,7 +1063,7 @@ export default function DailyQuestScreen() {
                                     style={styles.closeButton}
                                     onPress={() => setDetailItem(null)}
                                 >
-                                    <Feather name="x" size={22} color="#c4c7ce" />
+                                    <Feather name="x" size={22} color={themeColor(colors, '#c4c7ce')} />
                                 </TouchableOpacity>
 
                                 <Text style={styles.categoryBadge}>
@@ -1128,7 +1138,7 @@ export default function DailyQuestScreen() {
                                         <Feather
                                             name="play-circle"
                                             size={18}
-                                            color="#72bce0"
+                                            color={themeColor(colors, '#72bce0')}
                                         />
                                         <Text style={styles.videoButtonText}>
                                             {t('dailyQuest.watchTutorial')}
@@ -1155,7 +1165,7 @@ export default function DailyQuestScreen() {
                                     style={styles.closeButton}
                                     onPress={closeWorkout}
                                 >
-                                    <Feather name="x" size={22} color="#c4c7ce" />
+                                    <Feather name="x" size={22} color={themeColor(colors, '#c4c7ce')} />
                                 </TouchableOpacity>
 
                                 <Text style={styles.categoryBadge}>
@@ -1214,7 +1224,7 @@ export default function DailyQuestScreen() {
                                                     <Feather
                                                         name="check-circle"
                                                         size={19}
-                                                        color="#72bce0"
+                                                        color={themeColor(colors, '#72bce0')}
                                                     />
                                                 ) : null}
                                             </TouchableOpacity>
@@ -1231,13 +1241,13 @@ export default function DailyQuestScreen() {
                                             {actionLoading ? (
                                                 <ActivityIndicator
                                                     size="small"
-                                                    color="#071017"
+                                                    color={themeColor(colors, '#071017')}
                                                 />
                                             ) : (
                                                 <Feather
                                                     name="play"
                                                     size={17}
-                                                    color="#071017"
+                                                    color={themeColor(colors, '#071017')}
                                                 />
                                             )}
                                             <Text style={styles.primaryButtonText}>
@@ -1292,7 +1302,7 @@ export default function DailyQuestScreen() {
                                             <View style={styles.savingStatus}>
                                                 <ActivityIndicator
                                                     size="small"
-                                                    color="#72bce0"
+                                                    color={themeColor(colors, '#72bce0')}
                                                 />
                                                 <View style={styles.savingStatusText}>
                                                     <Text style={styles.savingTitle}>
@@ -1325,7 +1335,7 @@ export default function DailyQuestScreen() {
                                                                 : 'pause'
                                                         }
                                                         size={17}
-                                                        color="#e5e7eb"
+                                                        color={themeColor(colors, '#e5e7eb')}
                                                     />
                                                     <Text
                                                         style={
@@ -1352,7 +1362,7 @@ export default function DailyQuestScreen() {
                                                 <Feather
                                                     name="rotate-ccw"
                                                     size={17}
-                                                    color="#f87171"
+                                                    color={themeColor(colors, '#f87171')}
                                                 />
                                                 <Text style={styles.resetButtonText}>
                                                     {t('dailyQuest.reset').toUpperCase()}
@@ -1370,13 +1380,13 @@ export default function DailyQuestScreen() {
                                                 {actionLoading ? (
                                                     <ActivityIndicator
                                                         size="small"
-                                                        color="#071017"
+                                                        color={themeColor(colors, '#071017')}
                                                     />
                                                 ) : (
                                                     <Feather
                                                         name="award"
                                                         size={18}
-                                                        color="#071017"
+                                                        color={themeColor(colors, '#071017')}
                                                     />
                                                 )}
                                                 <Text
@@ -1418,7 +1428,7 @@ const colors = {
     bonus: '#fbbf24',
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },
     container: { flex: 1, backgroundColor: 'transparent' },
     content: { padding: 16, paddingTop: 22, paddingBottom: 44, gap: 20 },
@@ -1429,7 +1439,7 @@ const styles = StyleSheet.create({
         borderRadius: 130,
         top: -130,
         right: -100,
-        backgroundColor: 'rgba(69, 164, 214, 0.09)',
+        backgroundColor: themeColor(colors, 'rgba(69, 164, 214, 0.09)'),
     },
     ambientGlowBottom: {
         position: 'absolute',
@@ -1438,7 +1448,7 @@ const styles = StyleSheet.create({
         borderRadius: 120,
         bottom: 40,
         left: -160,
-        backgroundColor: 'rgba(80, 110, 180, 0.05)',
+        backgroundColor: themeColor(colors, 'rgba(80, 110, 180, 0.05)'),
     },
     pageHeader: {
         minHeight: 58,
@@ -1456,7 +1466,7 @@ const styles = StyleSheet.create({
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#6ee7b7',
+        backgroundColor: themeColor(colors, '#6ee7b7'),
         marginRight: 7,
         shadowColor: '#6ee7b7',
         shadowOpacity: 0.8,
@@ -1464,20 +1474,20 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     systemLabel: {
-        color: '#7f8792',
+        color: themeColor(colors, '#7f8792'),
         fontSize: 9,
         fontWeight: '900',
         letterSpacing: 1.8,
     },
     pageTitle: {
-        color: '#f8fafc',
+        color: themeColor(colors, '#f8fafc'),
         fontSize: 30,
         lineHeight: 35,
         fontWeight: '700',
         letterSpacing: -0.5,
     },
     pageDate: {
-        color: '#747983',
+        color: themeColor(colors, '#747983'),
         fontSize: 12,
         fontWeight: '500',
         letterSpacing: 0.3,
@@ -1488,8 +1498,8 @@ const styles = StyleSheet.create({
         height: 48,
         borderRadius: 15,
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.28)',
-        backgroundColor: 'rgba(114,188,224,0.08)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.28)'),
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.08)'),
         justifyContent: 'center',
         alignItems: 'center',
         transform: [{ rotate: '3deg' }],
@@ -1509,8 +1519,8 @@ const styles = StyleSheet.create({
     },
     statusCard: {
         borderWidth: 1,
-        borderColor: '#292c33',
-        backgroundColor: '#101116',
+        borderColor: themeColor(colors, '#292c33'),
+        backgroundColor: themeColor(colors, '#101116'),
         borderRadius: 10,
         padding: 15,
     },
@@ -1520,22 +1530,22 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: 3,
-        backgroundColor: '#72bce0',
+        backgroundColor: themeColor(colors, '#72bce0'),
     },
     statusIdentity: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
     statusIcon: {
         width: 50,
         height: 50,
         borderRadius: 14,
-        backgroundColor: 'rgba(5,9,14,0.72)',
+        backgroundColor: themeColor(colors, 'rgba(5,9,14,0.72)'),
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.22)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.22)'),
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 14,
     },
     eyebrow: {
-        color: colors.muted,
+        color: colors.mutedText,
         fontSize: 10,
         fontWeight: '800',
         letterSpacing: 1.2,
@@ -1550,24 +1560,24 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
     progressLabel: {
-        color: '#d8dbe0',
+        color: themeColor(colors, '#d8dbe0'),
         fontSize: 13,
         fontWeight: '600',
     },
-    progressValue: { color: '#777c85', fontSize: 12, fontWeight: '500' },
+    progressValue: { color: themeColor(colors, '#777c85'), fontSize: 12, fontWeight: '500' },
     progressTrack: {
         height: 4,
         borderRadius: 2,
-        backgroundColor: '#252830',
+        backgroundColor: themeColor(colors, '#252830'),
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
         borderRadius: 2,
-        backgroundColor: '#8b929c',
+        backgroundColor: themeColor(colors, '#8b929c'),
     },
     progressHint: {
-        color: '#626771',
+        color: themeColor(colors, '#626771'),
         fontSize: 10,
         fontWeight: '500',
         textAlign: 'right',
@@ -1590,17 +1600,17 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 15,
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.18)',
-        backgroundColor: 'rgba(114,188,224,0.06)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.18)'),
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.06)'),
         justifyContent: 'center',
         alignItems: 'center',
     },
     mandatoryBadge: {
         alignSelf: 'flex-start',
         color: colors.accent,
-        backgroundColor: 'rgba(114,188,224,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.08)'),
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.25)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.25)'),
         borderRadius: 4,
         paddingHorizontal: 7,
         paddingVertical: 3,
@@ -1615,16 +1625,16 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: -0.2,
     },
-    questSubtitle: { color: '#777c85', fontSize: 12, marginTop: 5 },
+    questSubtitle: { color: themeColor(colors, '#777c85'), fontSize: 12, marginTop: 5 },
     errorBox: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(248,113,113,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(248,113,113,0.08)'),
         borderRadius: 8,
         padding: 12,
         marginBottom: 14,
         gap: 8,
     },
-    errorText: { flex: 1, color: '#fca5a5', fontSize: 12, lineHeight: 17 },
+    errorText: { flex: 1, color: themeColor(colors, '#fca5a5'), fontSize: 12, lineHeight: 17 },
     questGroup: { marginBottom: 26 },
     bonusGroup: {
         borderTopWidth: 1,
@@ -1644,22 +1654,22 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    groupSubtitle: { color: '#686d76', fontSize: 11, marginTop: 4 },
+    groupSubtitle: { color: themeColor(colors, '#686d76'), fontSize: 11, marginTop: 4 },
     requiredBadge: {
-        color: '#777c85',
+        color: themeColor(colors, '#777c85'),
         fontSize: 10,
         fontWeight: '500',
     },
     bonusBadge: {
-        color: '#8a8067',
+        color: themeColor(colors, '#8a8067'),
         fontSize: 10,
         fontWeight: '500',
     },
     questItem: {
         minHeight: 68,
-        backgroundColor: '#0f1014',
+        backgroundColor: themeColor(colors, '#0f1014'),
         borderWidth: 1,
-        borderColor: '#272a31',
+        borderColor: themeColor(colors, '#272a31'),
         borderRadius: 9,
         paddingHorizontal: 12,
         paddingVertical: 11,
@@ -1668,8 +1678,8 @@ const styles = StyleSheet.create({
     questItemPending: {},
     questItemBonus: {},
     questItemComplete: {
-        backgroundColor: 'rgba(99, 158, 124, 0.055)',
-        borderColor: 'rgba(99, 158, 124, 0.22)',
+        backgroundColor: themeColor(colors, 'rgba(99, 158, 124, 0.055)'),
+        borderColor: themeColor(colors, 'rgba(99, 158, 124, 0.22)'),
     },
     questItemMain: {
         flexDirection: 'row',
@@ -1681,38 +1691,38 @@ const styles = StyleSheet.create({
         height: 20,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#5d626c',
+        borderColor: themeColor(colors, '#5d626c'),
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
     },
     stateIconComplete: {
-        borderColor: 'rgba(130,184,157,0.55)',
-        backgroundColor: 'rgba(130,184,157,0.08)',
+        borderColor: themeColor(colors, 'rgba(130,184,157,0.55)'),
+        backgroundColor: themeColor(colors, 'rgba(130,184,157,0.08)'),
     },
     pendingDot: {
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: '#777d87',
+        backgroundColor: themeColor(colors, '#777d87'),
     },
-    bonusDot: { backgroundColor: colors.bonus },
+    bonusDot: { backgroundColor: '#c084fc' },
     exerciseTextBlock: { flex: 1 },
     exerciseName: {
-        color: '#e5e7eb',
+        color: themeColor(colors, '#e5e7eb'),
         fontSize: 15,
         lineHeight: 19,
         fontWeight: '600',
     },
     exerciseTarget: {
-        color: '#666b74',
+        color: themeColor(colors, '#666b74'),
         fontSize: 11,
         fontWeight: '500',
         marginTop: 5,
     },
     completedText: {
         textDecorationLine: 'line-through',
-        color: '#858b94',
+        color: themeColor(colors, '#858b94'),
     },
     infoButton: {
         width: 32,
@@ -1725,13 +1735,13 @@ const styles = StyleSheet.create({
         minWidth: 78,
         height: 36,
         borderRadius: 7,
-        backgroundColor: '#d9dce1',
+        backgroundColor: themeColor(colors, '#d9dce1'),
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: 5,
     },
     trainButtonText: {
-        color: '#17191e',
+        color: themeColor(colors, '#17191e'),
         fontSize: 11,
         fontWeight: '700',
         letterSpacing: 0.5,
@@ -1746,7 +1756,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,
     },
     doneButtonText: {
-        color: '#82b89d',
+        color: themeColor(colors, '#82b89d'),
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 0.5,
@@ -1756,7 +1766,7 @@ const styles = StyleSheet.create({
         width: 58,
         height: 58,
         borderRadius: 29,
-        backgroundColor: 'rgba(114,188,224,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.08)'),
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -1768,7 +1778,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.9,
     },
     emptyDescription: {
-        color: colors.muted,
+        color: colors.mutedText,
         textAlign: 'center',
         lineHeight: 20,
         fontSize: 13,
@@ -1787,7 +1797,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     generateButtonText: {
-        color: '#071017',
+        color: themeColor(colors, '#071017'),
         fontSize: 11,
         fontWeight: '900',
         letterSpacing: 0.6,
@@ -1795,7 +1805,7 @@ const styles = StyleSheet.create({
     buttonDisabled: { opacity: 0.55 },
     rewardOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(3,4,7,0.84)',
+        backgroundColor: themeColor(colors, 'rgba(3,4,7,0.84)'),
         justifyContent: 'center',
         alignItems: 'center',
         padding: 22,
@@ -1803,9 +1813,9 @@ const styles = StyleSheet.create({
     rewardCard: {
         width: '100%',
         maxWidth: 420,
-        backgroundColor: '#15171c',
+        backgroundColor: themeColor(colors, '#15171c'),
         borderWidth: 1,
-        borderColor: '#343840',
+        borderColor: themeColor(colors, '#343840'),
         borderRadius: 14,
         padding: 24,
         shadowColor: '#000000',
@@ -1818,37 +1828,37 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: 'rgba(130,184,157,0.09)',
+        backgroundColor: themeColor(colors, 'rgba(130,184,157,0.09)'),
         borderWidth: 1,
-        borderColor: 'rgba(130,184,157,0.25)',
+        borderColor: themeColor(colors, 'rgba(130,184,157,0.25)'),
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
     },
     rewardEyebrow: {
-        color: '#82b89d',
+        color: themeColor(colors, '#82b89d'),
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 1.2,
         marginBottom: 7,
     },
     rewardTitle: {
-        color: '#f2f3f5',
+        color: themeColor(colors, '#f2f3f5'),
         fontSize: 25,
         fontWeight: '700',
         letterSpacing: -0.4,
     },
     rewardMessage: {
-        color: '#9297a0',
+        color: themeColor(colors, '#9297a0'),
         fontSize: 13,
         lineHeight: 20,
         marginTop: 10,
         marginBottom: 22,
     },
     attributeChanges: {
-        backgroundColor: '#101116',
+        backgroundColor: themeColor(colors, '#101116'),
         borderWidth: 1,
-        borderColor: '#292c33',
+        borderColor: themeColor(colors, '#292c33'),
         borderRadius: 9,
         paddingHorizontal: 14,
         paddingVertical: 5,
@@ -1863,18 +1873,18 @@ const styles = StyleSheet.create({
         borderBottomColor: '#24272d',
     },
     attributeChangeLabel: {
-        color: '#a5a9b1',
+        color: themeColor(colors, '#a5a9b1'),
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 0.7,
     },
     attributeChangeValue: {
-        color: '#82b89d',
+        color: themeColor(colors, '#82b89d'),
         fontSize: 17,
         fontWeight: '700',
     },
     rewardAppliedText: {
-        color: '#858a93',
+        color: themeColor(colors, '#858a93'),
         fontSize: 12,
         lineHeight: 18,
         textAlign: 'center',
@@ -1888,32 +1898,32 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 44,
         borderWidth: 1,
-        borderColor: '#3a3e46',
+        borderColor: themeColor(colors, '#3a3e46'),
         borderRadius: 7,
         justifyContent: 'center',
         alignItems: 'center',
     },
     viewProfileButtonText: {
-        color: '#c3c6cc',
+        color: themeColor(colors, '#c3c6cc'),
         fontSize: 12,
         fontWeight: '600',
     },
     rewardDoneButton: {
         flex: 1,
         height: 44,
-        backgroundColor: '#e0e2e5',
+        backgroundColor: themeColor(colors, '#e0e2e5'),
         borderRadius: 7,
         justifyContent: 'center',
         alignItems: 'center',
     },
     rewardDoneButtonText: {
-        color: '#17191e',
+        color: themeColor(colors, '#17191e'),
         fontSize: 12,
         fontWeight: '700',
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(2,3,6,0.88)',
+        backgroundColor: themeColor(colors, 'rgba(2,3,6,0.88)'),
         justifyContent: 'center',
     },
     modalSafeArea: { flex: 1, justifyContent: 'center' },
@@ -1924,9 +1934,9 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         width: '100%',
-        backgroundColor: '#111216',
+        backgroundColor: themeColor(colors, '#111216'),
         borderWidth: 1,
-        borderColor: '#2b2e35',
+        borderColor: themeColor(colors, '#2b2e35'),
         borderRadius: 10,
         padding: 20,
     },
@@ -1939,7 +1949,7 @@ const styles = StyleSheet.create({
     },
     categoryBadge: {
         alignSelf: 'flex-start',
-        color: '#757a84',
+        color: themeColor(colors, '#757a84'),
         fontSize: 10,
         fontWeight: '600',
     },
@@ -1949,47 +1959,47 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginTop: 10,
     },
-    modalTarget: { color: colors.muted, fontSize: 13, marginTop: 5, marginBottom: 20 },
-    accentText: { color: '#b6bac2', fontWeight: '600' },
+    modalTarget: { color: colors.mutedText, fontSize: 13, marginTop: 5, marginBottom: 20 },
+    accentText: { color: themeColor(colors, '#b6bac2'), fontWeight: '600' },
     detailImage: {
         width: '100%',
         height: 180,
         borderRadius: 9,
-        backgroundColor: '#0b0c10',
+        backgroundColor: themeColor(colors, '#0b0c10'),
         marginBottom: 20,
     },
     detailHeading: {
-        color: '#bfc2c8',
+        color: themeColor(colors, '#bfc2c8'),
         fontSize: 11,
         fontWeight: '600',
         marginBottom: 7,
         marginTop: 4,
     },
-    detailText: { color: colors.muted, fontSize: 13, lineHeight: 20, marginBottom: 18 },
+    detailText: { color: colors.mutedText, fontSize: 13, lineHeight: 20, marginBottom: 18 },
     detailStats: { flexDirection: 'row', gap: 10, marginBottom: 18 },
     detailStatCard: {
         flex: 1,
-        backgroundColor: '#0d0e12',
+        backgroundColor: themeColor(colors, '#0d0e12'),
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
         padding: 12,
     },
     detailStatLabel: {
-        color: colors.muted,
+        color: colors.mutedText,
         fontSize: 9,
         fontWeight: '800',
         letterSpacing: 0.5,
     },
     detailStatValue: { color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 5 },
-    warningText: { color: '#fbbf24' },
+    warningText: { color: themeColor(colors, '#fbbf24') },
     videoButton: {
         flexDirection: 'row',
         gap: 8,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.35)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.35)'),
         borderRadius: 7,
         paddingVertical: 12,
     },
@@ -2006,22 +2016,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: colors.border,
-        backgroundColor: '#0d0e12',
+        backgroundColor: themeColor(colors, '#0d0e12'),
         borderRadius: 9,
         paddingHorizontal: 14,
         marginBottom: 9,
     },
     paceOptionActive: {
-        borderColor: '#656b75',
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderColor: themeColor(colors, '#656b75'),
+        backgroundColor: themeColor(colors, 'rgba(255,255,255,0.03)'),
     },
     paceText: { flex: 1, marginLeft: 12 },
     paceTitle: { color: colors.text, fontSize: 13, fontWeight: '600' },
-    paceSubtitle: { color: colors.muted, fontSize: 11, marginTop: 2 },
+    paceSubtitle: { color: colors.mutedText, fontSize: 11, marginTop: 2 },
     primaryButton: {
         height: 46,
         borderRadius: 7,
-        backgroundColor: '#d7d9dd',
+        backgroundColor: themeColor(colors, '#d7d9dd'),
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -2029,7 +2039,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     primaryButtonText: {
-        color: '#071017',
+        color: themeColor(colors, '#071017'),
         fontSize: 12,
         fontWeight: '700',
     },
@@ -2040,25 +2050,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     phaseBadge: {
-        color: '#aeb2ba',
+        color: themeColor(colors, '#aeb2ba'),
         fontSize: 10,
         fontWeight: '600',
     },
-    restBadge: { color: '#84998f' },
-    setText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
+    restBadge: { color: themeColor(colors, '#84998f') },
+    setText: { color: colors.mutedText, fontSize: 11, fontWeight: '800' },
     timerCircle: {
         width: 190,
         height: 190,
         borderRadius: 95,
         borderWidth: 2,
-        borderColor: '#555b65',
+        borderColor: themeColor(colors, '#555b65'),
         alignSelf: 'center',
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 25,
-        backgroundColor: '#0a0b0f',
+        backgroundColor: themeColor(colors, '#0a0b0f'),
     },
-    timerCircleRest: { borderColor: '#667d72' },
+    timerCircleRest: { borderColor: themeColor(colors, '#667d72') },
     timerValue: {
         color: colors.text,
         fontSize: 48,
@@ -2066,7 +2076,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
     timerLabel: {
-        color: colors.muted,
+        color: colors.mutedText,
         fontSize: 10,
         fontWeight: '600',
         letterSpacing: 0.8,
@@ -2076,19 +2086,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#30343b',
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        borderColor: themeColor(colors, '#30343b'),
+        backgroundColor: themeColor(colors, 'rgba(255,255,255,0.02)'),
         borderRadius: 9,
         paddingHorizontal: 14,
         paddingVertical: 12,
     },
     savingStatusText: { marginLeft: 11 },
     savingTitle: {
-        color: '#b8bcc4',
+        color: themeColor(colors, '#b8bcc4'),
         fontSize: 10,
         fontWeight: '600',
     },
-    savingSubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },
+    savingSubtitle: { color: colors.mutedText, fontSize: 11, marginTop: 3 },
     controlRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
     controlButton: {
         flex: 1,
@@ -2102,22 +2112,22 @@ const styles = StyleSheet.create({
         gap: 7,
     },
     controlButtonText: {
-        color: '#e5e7eb',
+        color: themeColor(colors, '#e5e7eb'),
         fontSize: 10,
         fontWeight: '600',
         letterSpacing: 0.5,
     },
-    resetButton: { borderColor: 'rgba(248,113,113,0.35)' },
+    resetButton: { borderColor: themeColor(colors, 'rgba(248,113,113,0.35)') },
     resetButtonCompact: { flex: 0, paddingHorizontal: 24 },
     resetButtonText: {
-        color: '#f87171',
+        color: themeColor(colors, '#f87171'),
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 0.5,
     },
     completeButton: {
         minHeight: 48,
-        backgroundColor: '#d7d9dd',
+        backgroundColor: themeColor(colors, '#d7d9dd'),
         borderRadius: 7,
         flexDirection: 'row',
         justifyContent: 'center',
@@ -2126,14 +2136,14 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     completeButtonText: {
-        color: '#071017',
+        color: themeColor(colors, '#071017'),
         fontSize: 11,
         fontWeight: '700',
     },
     modalError: {
         marginTop: 14,
         borderRadius: 7,
-        backgroundColor: 'rgba(248,113,113,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(248,113,113,0.08)'),
         padding: 10,
     },
 });

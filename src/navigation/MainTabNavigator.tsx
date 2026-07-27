@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { MainTabParamList } from './types';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import DailyQuestScreen from '../screens/DailyQuestScreen';
@@ -8,6 +8,11 @@ import HistoryLogScreen from '../screens/HistoryLogScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
+import {
+    ThemeColors,
+    themeColor,
+    useAppTheme,
+} from '../theme/ThemeContext';
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -27,6 +32,8 @@ function TabIcon({
     size,
     focused,
 }: TabIconProps) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     return (
         <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
             <MaterialCommunityIcons
@@ -39,16 +46,18 @@ function TabIcon({
 }
 
 function MainTabNavigator() {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     return (
         <Tab.Navigator
             initialRouteName="DailyQuest"
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#ffffff',
-                tabBarInactiveTintColor: '#484f58',
+                tabBarActiveTintColor: colors.text,
+                tabBarInactiveTintColor: colors.mutedText,
                 tabBarStyle: {
-                    backgroundColor: '#0d1117',
-                    borderTopColor: '#21262d',
+                    backgroundColor: colors.surface,
+                    borderTopColor: colors.border,
                     borderTopWidth: 1,
                     height: 60,
                     paddingBottom: 8,
@@ -150,7 +159,7 @@ function MainTabNavigator() {
     )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     iconContainer: {
         width: 46,
         height: 38,
@@ -161,8 +170,8 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
     },
     activeIconContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.11)',
-        borderColor: 'rgba(255, 255, 255, 0.22)',
+        backgroundColor: themeColor(colors, 'rgba(255, 255, 255, 0.11)'),
+        borderColor: themeColor(colors, 'rgba(255, 255, 255, 0.22)'),
     },
 });
 

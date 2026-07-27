@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -39,6 +39,11 @@ import {
     toAppLanguage,
     updateMySettings,
 } from '../services/settingService';
+import {
+    ThemeColors,
+    themeColor,
+    useAppTheme,
+} from '../theme/ThemeContext';
 
 const LANGUAGE_OPTIONS: Array<{
     value: UserLanguage;
@@ -165,16 +170,24 @@ function AttributeCard({
     rewardProgress,
     onPress
 }: AttributeCardProps) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const hasGain = gain > 0;
     const animatedCardStyle = hasGain
         ? {
             borderColor: rewardProgress.interpolate({
                 inputRange: [0, 1],
-                outputRange: ['#373940', '#82b89d'],
+                outputRange: [
+                    themeColor(colors, '#373940'),
+                    themeColor(colors, '#82b89d'),
+                ],
             }),
             backgroundColor: rewardProgress.interpolate({
                 inputRange: [0, 1],
-                outputRange: ['#111216', 'rgba(130,184,157,0.12)'],
+                outputRange: [
+                    themeColor(colors, '#111216'),
+                    themeColor(colors, 'rgba(130,184,157,0.12)'),
+                ],
             }),
             transform: [
                 {
@@ -200,7 +213,7 @@ function AttributeCard({
                     <MaterialCommunityIcons
                         name={icon}
                         size={23}
-                        color="#f4f4f5"
+                        color={themeColor(colors, '#f4f4f5')}
                     />
                 </View>
 
@@ -226,6 +239,8 @@ function AttributeCard({
 
 export default function ProfileScreen({ navigation }: any) {
     const { t } = useTranslation();
+    const { colors, setThemePreference } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [selectedSettingsSection, setSelectedSettingsSection] = useState<
         'language' | 'theme' | 'region' | null
@@ -402,6 +417,9 @@ export default function ProfileScreen({ navigation }: any) {
                 toAppLanguage(value as UserLanguage)
             );
         }
+        if (field === 'theme') {
+            setThemePreference(value as UserTheme);
+        }
 
         try {
             const updatedSettings = await updateMySettings({
@@ -424,6 +442,9 @@ export default function ProfileScreen({ navigation }: any) {
                 await i18n.changeLanguage(
                     toAppLanguage(previousSettings.language)
                 );
+            }
+            if (field === 'theme') {
+                setThemePreference(previousSettings.theme);
             }
 
             Alert.alert(
@@ -454,7 +475,7 @@ export default function ProfileScreen({ navigation }: any) {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#ffffff" />
+                <ActivityIndicator size="large" color={themeColor(colors, '#ffffff')} />
                 <Text style={styles.loadingText}>{t('profile.loading')}</Text>
             </View>
         );
@@ -464,16 +485,19 @@ export default function ProfileScreen({ navigation }: any) {
     const userName = profile?.userName || 'HUNTER';
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <SafeAreaView
+            style={[styles.safeArea, { backgroundColor: colors.background }]}
+            edges={['top']}
+        >
             <ScrollView
-                style={styles.container}
+                style={[styles.container, { backgroundColor: colors.background }]}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor="#ffffff"
+                        tintColor={themeColor(colors, '#ffffff')}
                     />
                 }
             >
@@ -491,7 +515,7 @@ export default function ProfileScreen({ navigation }: any) {
                             <MaterialCommunityIcons
                                 name="shield-account"
                                 size={62}
-                                color="#dbeafe"
+                                color={themeColor(colors, '#dbeafe')}
                             />
                         )}
                     </View>
@@ -502,7 +526,7 @@ export default function ProfileScreen({ navigation }: any) {
                         accessibilityRole="button"
                         accessibilityLabel={t('settings.title')}
                     >
-                        <Feather name="menu" size={27} color="#72bce0" />
+                        <Feather name="menu" size={27} color={themeColor(colors, '#72bce0')} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.identityRow}>
@@ -530,7 +554,7 @@ export default function ProfileScreen({ navigation }: any) {
                             message: nextRank
                                 ? t('profile.rpRemaining', { count: rpToNextRank, rank: nextRank })
                                 : t('profile.highestRank'),
-                            color: '#72bce0',
+                            color: themeColor(colors, '#72bce0'),
                         })}
                     >
                         <Text style={styles.summaryValue}>{profile?.currentRp ?? 0}</Text>
@@ -544,7 +568,7 @@ export default function ProfileScreen({ navigation }: any) {
                             description: t('profile.currentStreakDescription'),
                             value: profile?.currentStreak ?? 0,
                             message: t('profile.maintainStreak'),
-                            color: '#f97316',
+                            color: themeColor(colors, '#f97316'),
                         })}
                     >
                         <Text style={styles.summaryValue}>{profile?.currentStreak ?? 0}</Text>
@@ -558,7 +582,7 @@ export default function ProfileScreen({ navigation }: any) {
                             description: t('profile.bestStreakDescription'),
                             value: profile?.maxStreak ?? 0,
                             message: t('profile.surpassRecord'),
-                            color: '#eab308',
+                            color: themeColor(colors, '#eab308'),
                         })}
                     >
                         <Text style={styles.summaryValue}>{profile?.maxStreak ?? 0}</Text>
@@ -680,7 +704,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 accessibilityLabel={t('profile.copyHunterId')}
                                 onPress={handleCopyHunterCode}
                             >
-                                <Feather name="copy" size={16} color="#72bce0" />
+                                <Feather name="copy" size={16} color={themeColor(colors, '#72bce0')} />
                             </TouchableOpacity>
                         ) : null}
                     </View>
@@ -745,7 +769,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 message: (profile?.shieldCount ?? 0) > 0
                                     ? t('profile.shieldProtected')
                                     : t('profile.shieldUnprotected'),
-                                color: '#60a5fa',
+                                color: themeColor(colors, '#60a5fa'),
                             })}
                         />
                     </View>
@@ -765,7 +789,12 @@ export default function ProfileScreen({ navigation }: any) {
                 }}
             >
                 <View style={styles.settingsBackdrop}>
-                    <SafeAreaView style={styles.settingsSheet}>
+                    <SafeAreaView
+                        style={[
+                            styles.settingsSheet,
+                            { backgroundColor: colors.surface },
+                        ]}
+                    >
                         <View style={styles.settingsHeader}>
                             {selectedSettingsSection ? (
                                 <TouchableOpacity
@@ -777,12 +806,14 @@ export default function ProfileScreen({ navigation }: any) {
                                     <Feather
                                         name="chevron-left"
                                         size={25}
-                                        color="#ffffff"
+                                        color={themeColor(colors, '#ffffff')}
                                     />
                                 </TouchableOpacity>
                             ) : null}
 
-                            <Text style={styles.settingsTitle}>
+                            <Text
+                                style={[styles.settingsTitle, { color: colors.text }]}
+                            >
                                 {selectedSettingsSection
                                     ? t(`settings.${selectedSettingsSection}`)
                                     : t('settings.title')}
@@ -797,13 +828,13 @@ export default function ProfileScreen({ navigation }: any) {
                                 accessibilityRole="button"
                                 accessibilityLabel={t('common.close')}
                             >
-                                <Feather name="x" size={24} color="#ffffff" />
+                                <Feather name="x" size={24} color={themeColor(colors, '#ffffff')} />
                             </TouchableOpacity>
                         </View>
 
                         {settingsLoading || !settings ? (
                             <View style={styles.settingsLoading}>
-                                <ActivityIndicator size="large" color="#72bce0" />
+                                <ActivityIndicator size="large" color={themeColor(colors, '#72bce0')} />
                             </View>
                         ) : (
                             <ScrollView showsVerticalScrollIndicator={false}>
@@ -818,6 +849,10 @@ export default function ProfileScreen({ navigation }: any) {
                                                 key={option.value}
                                                 style={[
                                                     styles.settingsOption,
+                                                    {
+                                                        backgroundColor: colors.elevated,
+                                                        borderColor: colors.border,
+                                                    },
                                                     selected && styles.settingsOptionSelected,
                                                 ]}
                                                 disabled={settingsSaving}
@@ -829,7 +864,12 @@ export default function ProfileScreen({ navigation }: any) {
                                                     <Text style={styles.settingsFlag}>
                                                         {option.flag}
                                                     </Text>
-                                                    <Text style={styles.settingsOptionText}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsOptionText,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {option.label}
                                                     </Text>
                                                 </View>
@@ -838,7 +878,7 @@ export default function ProfileScreen({ navigation }: any) {
                                                     <Feather
                                                         name="check"
                                                         size={18}
-                                                        color="#72bce0"
+                                                        color={themeColor(colors, '#72bce0')}
                                                     />
                                                 ) : null}
                                             </TouchableOpacity>
@@ -857,6 +897,10 @@ export default function ProfileScreen({ navigation }: any) {
                                                 key={option.value}
                                                 style={[
                                                     styles.settingsOption,
+                                                    {
+                                                        backgroundColor: colors.elevated,
+                                                        borderColor: colors.border,
+                                                    },
                                                     selected && styles.settingsOptionSelected,
                                                 ]}
                                                 disabled={settingsSaving}
@@ -885,7 +929,12 @@ export default function ProfileScreen({ navigation }: any) {
                                                             </>
                                                         ) : null}
                                                     </View>
-                                                    <Text style={styles.settingsOptionText}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsOptionText,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {t(option.labelKey)}
                                                     </Text>
                                                 </View>
@@ -894,7 +943,7 @@ export default function ProfileScreen({ navigation }: any) {
                                                     <Feather
                                                         name="check"
                                                         size={18}
-                                                        color="#72bce0"
+                                                        color={themeColor(colors, '#72bce0')}
                                                     />
                                                 ) : null}
                                             </TouchableOpacity>
@@ -913,6 +962,10 @@ export default function ProfileScreen({ navigation }: any) {
                                                 key={option.value}
                                                 style={[
                                                     styles.settingsOption,
+                                                    {
+                                                        backgroundColor: colors.elevated,
+                                                        borderColor: colors.border,
+                                                    },
                                                     selected && styles.settingsOptionSelected,
                                                 ]}
                                                 disabled={settingsSaving}
@@ -924,7 +977,12 @@ export default function ProfileScreen({ navigation }: any) {
                                                     <Text style={styles.settingsFlag}>
                                                         {option.flag}
                                                     </Text>
-                                                    <Text style={styles.settingsOptionText}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsOptionText,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {option.label}
                                                     </Text>
                                                 </View>
@@ -933,7 +991,7 @@ export default function ProfileScreen({ navigation }: any) {
                                                     <Feather
                                                         name="check"
                                                         size={18}
-                                                        color="#72bce0"
+                                                        color={themeColor(colors, '#72bce0')}
                                                     />
                                                 ) : null}
                                             </TouchableOpacity>
@@ -945,7 +1003,13 @@ export default function ProfileScreen({ navigation }: any) {
                                 {selectedSettingsSection === null ? (
                                     <View style={styles.settingsMenu}>
                                         <TouchableOpacity
-                                            style={styles.settingsMenuItem}
+                                            style={[
+                                                styles.settingsMenuItem,
+                                                {
+                                                    backgroundColor: colors.elevated,
+                                                    borderColor: colors.border,
+                                                },
+                                            ]}
                                             onPress={() =>
                                                 setSelectedSettingsSection('language')
                                             }
@@ -954,10 +1018,15 @@ export default function ProfileScreen({ navigation }: any) {
                                                 <Feather
                                                     name="globe"
                                                     size={20}
-                                                    color="#72bce0"
+                                                    color={themeColor(colors, '#72bce0')}
                                                 />
                                                 <View>
-                                                    <Text style={styles.settingsMenuLabel}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsMenuLabel,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {t('settings.language')}
                                                     </Text>
                                                     <Text style={styles.settingsMenuValue}>
@@ -978,12 +1047,18 @@ export default function ProfileScreen({ navigation }: any) {
                                             <Feather
                                                 name="chevron-right"
                                                 size={21}
-                                                color="#616670"
+                                                color={themeColor(colors, '#616670')}
                                             />
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={styles.settingsMenuItem}
+                                            style={[
+                                                styles.settingsMenuItem,
+                                                {
+                                                    backgroundColor: colors.elevated,
+                                                    borderColor: colors.border,
+                                                },
+                                            ]}
                                             onPress={() =>
                                                 setSelectedSettingsSection('theme')
                                             }
@@ -992,10 +1067,15 @@ export default function ProfileScreen({ navigation }: any) {
                                                 <Feather
                                                     name="moon"
                                                     size={20}
-                                                    color="#72bce0"
+                                                    color={themeColor(colors, '#72bce0')}
                                                 />
                                                 <View>
-                                                    <Text style={styles.settingsMenuLabel}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsMenuLabel,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {t('settings.theme')}
                                                     </Text>
                                                     <Text style={styles.settingsMenuValue}>
@@ -1012,12 +1092,18 @@ export default function ProfileScreen({ navigation }: any) {
                                             <Feather
                                                 name="chevron-right"
                                                 size={21}
-                                                color="#616670"
+                                                color={themeColor(colors, '#616670')}
                                             />
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={styles.settingsMenuItem}
+                                            style={[
+                                                styles.settingsMenuItem,
+                                                {
+                                                    backgroundColor: colors.elevated,
+                                                    borderColor: colors.border,
+                                                },
+                                            ]}
                                             onPress={() =>
                                                 setSelectedSettingsSection('region')
                                             }
@@ -1026,10 +1112,15 @@ export default function ProfileScreen({ navigation }: any) {
                                                 <Feather
                                                     name="map-pin"
                                                     size={20}
-                                                    color="#72bce0"
+                                                    color={themeColor(colors, '#72bce0')}
                                                 />
                                                 <View>
-                                                    <Text style={styles.settingsMenuLabel}>
+                                                    <Text
+                                                        style={[
+                                                            styles.settingsMenuLabel,
+                                                            { color: colors.text },
+                                                        ]}
+                                                    >
                                                         {t('settings.region')}
                                                     </Text>
                                                     <Text style={styles.settingsMenuValue}>
@@ -1050,7 +1141,7 @@ export default function ProfileScreen({ navigation }: any) {
                                             <Feather
                                                 name="chevron-right"
                                                 size={21}
-                                                color="#616670"
+                                                color={themeColor(colors, '#616670')}
                                             />
                                         </TouchableOpacity>
 
@@ -1066,7 +1157,7 @@ export default function ProfileScreen({ navigation }: any) {
                                                 <Feather
                                                     name="log-out"
                                                     size={20}
-                                                    color="#f87171"
+                                                    color={themeColor(colors, '#f87171')}
                                                 />
                                                 <Text style={styles.settingsLogoutText}>
                                                     {t('profile.logout')}
@@ -1079,7 +1170,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 {settingsSaving ? (
                                     <ActivityIndicator
                                         style={styles.settingsSaving}
-                                        color="#72bce0"
+                                        color={themeColor(colors, '#72bce0')}
                                     />
                                 ) : null}
                             </ScrollView>
@@ -1133,7 +1224,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 accessibilityRole="button"
                                 accessibilityLabel={t('common.close')}
                             >
-                                <Feather name="x" size={19} color="#777982" />
+                                <Feather name="x" size={19} color={themeColor(colors, '#777982')} />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.modalTitleRow}>
@@ -1189,7 +1280,7 @@ export default function ProfileScreen({ navigation }: any) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     header1: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -1197,15 +1288,15 @@ const styles = StyleSheet.create({
     },
     safeArea: {
         flex: 1,
-        backgroundColor: '#08090d',
+        backgroundColor: themeColor(colors, '#08090d'),
     },
     container: {
         flex: 1,
-        backgroundColor: '#08090d',
+        backgroundColor: themeColor(colors, '#08090d'),
     },
     centerContainer: {
         flex: 1,
-        backgroundColor: '#08090d',
+        backgroundColor: themeColor(colors, '#08090d'),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -1217,7 +1308,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 15,
     },
     loadingText: {
-        color: '#8b8d96',
+        color: themeColor(colors, '#8b8d96'),
         fontSize: 12,
         fontWeight: '700',
         letterSpacing: 1.5,
@@ -1232,9 +1323,9 @@ const styles = StyleSheet.create({
         width: 116,
         height: 116,
         borderRadius: 58,
-        backgroundColor: '#0d1520',
+        backgroundColor: themeColor(colors, '#0d1520'),
         borderWidth: 4.5,
-        borderColor: '#343741',
+        borderColor: themeColor(colors, '#343741'),
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
@@ -1250,7 +1341,7 @@ const styles = StyleSheet.create({
         marginBottom: 22,
     },
     username: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 30,
         lineHeight: 36,
         fontWeight: '800',
@@ -1259,15 +1350,15 @@ const styles = StyleSheet.create({
     editButton: {
         minHeight: 42,
         paddingHorizontal: 18,
-        backgroundColor: '#292a2f',
+        backgroundColor: themeColor(colors, '#292a2f'),
         borderWidth: 1,
-        borderColor: '#41434a',
+        borderColor: themeColor(colors, '#41434a'),
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
     },
     editButtonText: {
-        color: '#f5f5f5',
+        color: themeColor(colors, '#f5f5f5'),
         fontSize: 15,
         fontWeight: '700',
         letterSpacing: 0.4,
@@ -1282,12 +1373,12 @@ const styles = StyleSheet.create({
         alignItems: 'baseline',
     },
     summaryValue: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 24,
         fontWeight: '800',
     },
     summaryLabel: {
-        color: '#a5a5ae',
+        color: themeColor(colors, '#a5a5ae'),
         fontSize: 16,
         fontWeight: '500',
     },
@@ -1295,22 +1386,22 @@ const styles = StyleSheet.create({
         marginBottom: 46,
     },
     fullName: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 20,
         fontWeight: '800',
         marginBottom: 4,
     },
     description: {
-        color: '#c4c4ca',
+        color: themeColor(colors, '#c4c4ca'),
         fontSize: 16,
         lineHeight: 22,
         fontWeight: '500',
     },
     dot: {
-        color: '#e5e7eb',
+        color: themeColor(colors, '#e5e7eb'),
     },
     hunterCode: {
-        color: '#9b9ca4',
+        color: themeColor(colors, '#9b9ca4'),
         fontSize: 15,
         fontWeight: '600',
         letterSpacing: 1.2,
@@ -1332,7 +1423,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     sectionTitle: {
-        color: '#a9a9b2',
+        color: themeColor(colors, '#a9a9b2'),
         fontSize: 17,
         fontWeight: '800',
         letterSpacing: 1.7,
@@ -1350,9 +1441,9 @@ const styles = StyleSheet.create({
         minHeight: 76,
         paddingHorizontal: 14,
         paddingVertical: 12,
-        backgroundColor: '#111216',
+        backgroundColor: themeColor(colors, '#111216'),
         borderWidth: 1,
-        borderColor: '#373940',
+        borderColor: themeColor(colors, '#373940'),
         borderRadius: 13,
         flexDirection: 'row',
         alignItems: 'center',
@@ -1361,7 +1452,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#25272d',
+        backgroundColor: themeColor(colors, '#25272d'),
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -1370,19 +1461,19 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     attributeGain: {
-        color: '#82b89d',
+        color: themeColor(colors, '#82b89d'),
         fontSize: 15,
         fontWeight: '800',
         marginLeft: 8,
     },
     attributeValue: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 21,
         lineHeight: 24,
         fontWeight: '800',
     },
     attributeLabel: {
-        color: '#9aa6c2',
+        color: themeColor(colors, '#9aa6c2'),
         fontSize: 11,
         fontWeight: '800',
         letterSpacing: 0.7,
@@ -1401,9 +1492,9 @@ const styles = StyleSheet.create({
         gap: 9,
     },
     rankProgressCard: {
-        backgroundColor: '#111216',
+        backgroundColor: themeColor(colors, '#111216'),
         borderWidth: 1,
-        borderColor: '#373940',
+        borderColor: themeColor(colors, '#373940'),
         borderRadius: 13,
         padding: 16,
         marginBottom: 28,
@@ -1415,7 +1506,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     rankProgressTitle: {
-        color: '#a9a9b2',
+        color: themeColor(colors, '#a9a9b2'),
         fontSize: 13,
         fontWeight: '800',
         letterSpacing: 1.4,
@@ -1425,19 +1516,19 @@ const styles = StyleSheet.create({
         fontWeight: '800',
     },
     rankProgressSeparator: {
-        color: '#a9a9b2',
+        color: themeColor(colors, '#a9a9b2'),
         textShadowRadius: 0,
     },
     progressTrack: {
         width: '100%',
         height: 10,
-        backgroundColor: '#292a2f',
+        backgroundColor: themeColor(colors, '#292a2f'),
         borderRadius: 5,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#72bce0',
+        backgroundColor: themeColor(colors, '#72bce0'),
         borderRadius: 5,
     },
     rankProgressFooter: {
@@ -1447,12 +1538,12 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     progressPercentText: {
-        color: '#9b9ca4',
+        color: themeColor(colors, '#9b9ca4'),
         fontSize: 12,
         fontWeight: '700',
     },
     remainingRpText: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 12,
         fontWeight: '800',
         letterSpacing: 0.4,
@@ -1469,12 +1560,12 @@ const styles = StyleSheet.create({
     },
     modalDimOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.28)',
+        backgroundColor: themeColor(colors, 'rgba(0, 0, 0, 0.28)'),
     },
     infoModal: {
-        backgroundColor: 'rgba(10, 11, 14, 0.78)',
+        backgroundColor: themeColor(colors, 'rgba(10, 11, 14, 0.78)'),
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.13)',
+        borderColor: themeColor(colors, 'rgba(255, 255, 255, 0.13)'),
         borderRadius: 28,
         paddingHorizontal: 24,
         paddingTop: 12,
@@ -1490,7 +1581,7 @@ const styles = StyleSheet.create({
         width: 38,
         height: 5,
         borderRadius: 3,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: themeColor(colors, 'rgba(255, 255, 255, 0.2)'),
         alignSelf: 'center',
         marginBottom: 16,
     },
@@ -1509,13 +1600,13 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     modalEyebrow: {
-        color: '#666872',
+        color: themeColor(colors, '#666872'),
         fontSize: 10,
         fontWeight: '800',
         letterSpacing: 2.2,
     },
     modalTitle: {
-        color: '#f4f4f5',
+        color: themeColor(colors, '#f4f4f5'),
         fontSize: 25,
         lineHeight: 31,
         fontWeight: '800',
@@ -1539,14 +1630,14 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#121317',
+        backgroundColor: themeColor(colors, '#121317'),
         borderWidth: 1,
-        borderColor: '#25272d',
+        borderColor: themeColor(colors, '#25272d'),
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalDescription: {
-        color: '#9a9ca5',
+        color: themeColor(colors, '#9a9ca5'),
         fontSize: 15,
         lineHeight: 22,
         marginTop: 9,
@@ -1560,13 +1651,13 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     modalValueCaption: {
-        color: '#62646d',
+        color: themeColor(colors, '#62646d'),
         fontSize: 9,
         fontWeight: '800',
         letterSpacing: 1.8,
     },
     modalValueLabel: {
-        color: '#d6d7dc',
+        color: themeColor(colors, '#d6d7dc'),
         fontSize: 15,
         fontWeight: '800',
         letterSpacing: 1.4,
@@ -1588,14 +1679,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 2,
     },
     modalMessageLabel: {
-        color: '#62646d',
+        color: themeColor(colors, '#62646d'),
         fontSize: 9,
         fontWeight: '800',
         letterSpacing: 1.7,
         marginBottom: 6,
     },
     modalMessage: {
-        color: '#d2d3d8',
+        color: themeColor(colors, '#d2d3d8'),
         fontSize: 14,
         lineHeight: 20,
         fontWeight: '500',
@@ -1604,12 +1695,12 @@ const styles = StyleSheet.create({
     settingsBackdrop: {
         flex: 1,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        backgroundColor: themeColor(colors, 'rgba(0, 0, 0, 0.65)'),
     },
 
     settingsSheet: {
         maxHeight: '90%',
-        backgroundColor: '#0d1117',
+        backgroundColor: themeColor(colors, '#0d1117'),
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingHorizontal: 20,
@@ -1633,7 +1724,7 @@ const styles = StyleSheet.create({
 
     settingsTitle: {
         flex: 1,
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 22,
         fontWeight: '800',
     },
@@ -1645,7 +1736,7 @@ const styles = StyleSheet.create({
     },
 
     settingsSectionTitle: {
-        color: '#8b949e',
+        color: themeColor(colors, '#8b949e'),
         fontSize: 12,
         fontWeight: '700',
         letterSpacing: 1,
@@ -1668,9 +1759,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        backgroundColor: '#11161d',
+        backgroundColor: themeColor(colors, '#11161d'),
         borderWidth: 1,
-        borderColor: '#21262d',
+        borderColor: themeColor(colors, '#21262d'),
         borderRadius: 12,
     },
 
@@ -1681,21 +1772,21 @@ const styles = StyleSheet.create({
     },
 
     settingsMenuLabel: {
-        color: '#e5e7eb',
+        color: themeColor(colors, '#e5e7eb'),
         fontSize: 15,
         fontWeight: '700',
     },
 
     settingsMenuValue: {
-        color: '#777d88',
+        color: themeColor(colors, '#777d88'),
         fontSize: 12,
         marginTop: 3,
     },
 
     settingsLogoutMenuItem: {
         marginTop: 10,
-        borderColor: 'rgba(248, 113, 113, 0.35)',
-        backgroundColor: 'rgba(248, 113, 113, 0.06)',
+        borderColor: themeColor(colors, 'rgba(248, 113, 113, 0.35)'),
+        backgroundColor: themeColor(colors, 'rgba(248, 113, 113, 0.06)'),
     },
 
     settingsOption: {
@@ -1704,15 +1795,15 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        backgroundColor: '#11161d',
+        backgroundColor: themeColor(colors, '#11161d'),
         borderWidth: 1,
-        borderColor: '#21262d',
+        borderColor: themeColor(colors, '#21262d'),
         borderRadius: 10,
     },
 
     settingsOptionSelected: {
-        borderColor: '#72bce0',
-        backgroundColor: 'rgba(114, 188, 224, 0.1)',
+        borderColor: themeColor(colors, '#72bce0'),
+        backgroundColor: themeColor(colors, 'rgba(114, 188, 224, 0.1)'),
     },
 
     settingsOptionLabel: {
@@ -1726,7 +1817,7 @@ const styles = StyleSheet.create({
     },
 
     settingsOptionText: {
-        color: '#e5e7eb',
+        color: themeColor(colors, '#e5e7eb'),
         fontSize: 15,
         fontWeight: '600',
     },
@@ -1738,29 +1829,29 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#4b5563',
+        borderColor: themeColor(colors, '#4b5563'),
     },
 
     themeColorLight: {
-        backgroundColor: '#f8fafc',
-        borderColor: '#cbd5e1',
+        backgroundColor: themeColor(colors, '#f8fafc'),
+        borderColor: themeColor(colors, '#cbd5e1'),
     },
 
     themeColorDark: {
-        backgroundColor: '#080a0f',
-        borderColor: '#4b5563',
+        backgroundColor: themeColor(colors, '#080a0f'),
+        borderColor: themeColor(colors, '#4b5563'),
     },
 
     themeColorSystemLight: {
         width: '50%',
         height: '100%',
-        backgroundColor: '#f8fafc',
+        backgroundColor: themeColor(colors, '#f8fafc'),
     },
 
     themeColorSystemDark: {
         width: '50%',
         height: '100%',
-        backgroundColor: '#080a0f',
+        backgroundColor: themeColor(colors, '#080a0f'),
     },
 
     settingsLogoutButton: {
@@ -1771,13 +1862,13 @@ const styles = StyleSheet.create({
         gap: 9,
         marginTop: 28,
         borderWidth: 1,
-        borderColor: 'rgba(248, 113, 113, 0.4)',
+        borderColor: themeColor(colors, 'rgba(248, 113, 113, 0.4)'),
         borderRadius: 10,
-        backgroundColor: 'rgba(248, 113, 113, 0.08)',
+        backgroundColor: themeColor(colors, 'rgba(248, 113, 113, 0.08)'),
     },
 
     settingsLogoutText: {
-        color: '#f87171',
+        color: themeColor(colors, '#f87171'),
         fontSize: 15,
         fontWeight: '700',
     },

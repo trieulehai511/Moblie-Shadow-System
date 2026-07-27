@@ -2,22 +2,41 @@ import React from 'react';
 import './src/i18n';
 
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from './src/navigation/types';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
-import MainAppScreen from './src/screens/MainAppScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
+import { ThemeProvider, useAppTheme } from './src/theme/ThemeContext';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-export default function App() {
+
+function AppContent() {
+  const { colors, mode } = useAppTheme();
+  const navigationTheme: Theme = {
+    dark: mode === 'dark',
+    colors: {
+      primary: colors.accent,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.danger,
+    },
+    fonts: {
+      regular: { fontFamily: 'System', fontWeight: '400' },
+      medium: { fontFamily: 'System', fontWeight: '500' },
+      bold: { fontFamily: 'System', fontWeight: '700' },
+      heavy: { fontFamily: 'System', fontWeight: '800' },
+    },
+  };
+
   return (
-    <NavigationContainer>
-      <StatusBar style="light" />
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
@@ -34,12 +53,10 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}

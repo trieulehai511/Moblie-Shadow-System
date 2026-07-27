@@ -25,6 +25,11 @@ import {
     QuestLogPage,
 } from '../models/QuestLogModel';
 import { useTranslation } from 'react-i18next';
+import {
+    ThemeColors,
+    themeColor,
+    useAppTheme,
+} from '../theme/ThemeContext';
 
 type TokenPayload = {
     sub: string;
@@ -64,6 +69,8 @@ const formatStatus = (status?: string) =>
 
 export default function HistoryLogScreen() {
     const { t, i18n } = useTranslation();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [logs, setLogs] = useState<QuestLogItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -190,9 +197,9 @@ export default function HistoryLogScreen() {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
+            <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
                 <View style={styles.loadingIcon}>
-                    <ActivityIndicator size="large" color="#72bce0" />
+                    <ActivityIndicator size="large" color={themeColor(colors, '#72bce0')} />
                 </View>
                 <Text style={styles.loadingText}>{t('history.loading')}</Text>
             </View>
@@ -200,7 +207,10 @@ export default function HistoryLogScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <SafeAreaView
+            style={[styles.safeArea, { backgroundColor: colors.background }]}
+            edges={['top']}
+        >
             <SectionList
                 sections={displaySections}
                 keyExtractor={item => item.id}
@@ -211,14 +221,14 @@ export default function HistoryLogScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        tintColor="#72bce0"
+                        tintColor={themeColor(colors, '#72bce0')}
                     />
                 }
                 ListHeaderComponent={
                     <View style={styles.historyHeader}>
                         <View style={styles.titleRow}>
                             <Text style={styles.title}>{t('history.title')}</Text>
-                            <Feather name="clock" size={20} color="#6f737c" />
+                            <Feather name="clock" size={20} color={themeColor(colors, '#6f737c')} />
                         </View>
 
                         <Text style={styles.subtitle}>
@@ -291,7 +301,7 @@ export default function HistoryLogScreen() {
                                                 : 'chevron-down'
                                         }
                                         size={15}
-                                        color="#616670"
+                                        color={themeColor(colors, '#616670')}
                                     />
                                 ) : null}
                             </View>
@@ -344,10 +354,10 @@ export default function HistoryLogScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#08090d',
+        backgroundColor: themeColor(colors, '#08090d'),
     },
     ambientGlow: {
         position: 'absolute',
@@ -356,7 +366,7 @@ const styles = StyleSheet.create({
         borderRadius: 140,
         top: -150,
         right: -120,
-        backgroundColor: 'rgba(67,157,205,0.09)',
+        backgroundColor: themeColor(colors, 'rgba(67,157,205,0.09)'),
     },
     listContent: {
         paddingHorizontal: 16,
@@ -365,7 +375,7 @@ const styles = StyleSheet.create({
     },
     centerContainer: {
         flex: 1,
-        backgroundColor: '#08090d',
+        backgroundColor: themeColor(colors, '#08090d'),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -374,13 +384,13 @@ const styles = StyleSheet.create({
         height: 68,
         borderRadius: 22,
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.22)',
-        backgroundColor: 'rgba(114,188,224,0.06)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.22)'),
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.06)'),
         justifyContent: 'center',
         alignItems: 'center',
     },
     loadingText: {
-        color: '#72bce0',
+        color: themeColor(colors, '#72bce0'),
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 1.5,
@@ -398,11 +408,11 @@ const styles = StyleSheet.create({
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#6ee7b7',
+        backgroundColor: themeColor(colors, '#6ee7b7'),
         marginRight: 7,
     },
     systemLabel: {
-        color: '#7f8792',
+        color: themeColor(colors, '#7f8792'),
         fontSize: 9,
         fontWeight: '900',
         letterSpacing: 1.8,
@@ -417,33 +427,33 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     title: {
-        color: '#f8fafc',
+        color: themeColor(colors, '#f8fafc'),
         fontSize: 30,
         fontWeight: '700',
         letterSpacing: -0.5,
     },
     subtitle: {
-        color: '#777b84',
+        color: themeColor(colors, '#777b84'),
         fontSize: 13,
         lineHeight: 19,
         marginTop: 9,
     },
     summarySeparator: {
-        color: '#3f4249',
+        color: themeColor(colors, '#3f4249'),
     },
     activeSummary: {
-        color: '#aeb2ba',
+        color: themeColor(colors, '#aeb2ba'),
     },
     missedSummary: {
-        color: '#b46e73',
+        color: themeColor(colors, '#b46e73'),
     },
     headerIcon: {
         width: 48,
         height: 48,
         borderRadius: 15,
         borderWidth: 1,
-        borderColor: 'rgba(114,188,224,0.25)',
-        backgroundColor: 'rgba(114,188,224,0.07)',
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.25)'),
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.07)'),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -452,7 +462,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: themeColor(colors, 'rgba(255,255,255,0.08)'),
         borderRadius: 14,
         paddingHorizontal: 16,
         marginTop: 22,
@@ -462,15 +472,15 @@ const styles = StyleSheet.create({
         minWidth: 62,
     },
     summaryValue: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 23,
         fontWeight: '900',
     },
     missedValue: {
-        color: '#f87171',
+        color: themeColor(colors, '#f87171'),
     },
     summaryLabel: {
-        color: '#9297a1',
+        color: themeColor(colors, '#9297a1'),
         fontSize: 8,
         fontWeight: '900',
         letterSpacing: 0.8,
@@ -479,21 +489,21 @@ const styles = StyleSheet.create({
     summaryDivider: {
         width: 1,
         height: 34,
-        backgroundColor: '#30333c',
+        backgroundColor: themeColor(colors, '#30333c'),
         marginHorizontal: 15,
     },
     syncedBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
-        backgroundColor: 'rgba(110,231,183,0.07)',
+        backgroundColor: themeColor(colors, 'rgba(110,231,183,0.07)'),
         borderRadius: 20,
         paddingHorizontal: 9,
         paddingVertical: 7,
         marginLeft: 'auto',
     },
     syncedText: {
-        color: '#6ee7b7',
+        color: themeColor(colors, '#6ee7b7'),
         fontSize: 8,
         fontWeight: '900',
         letterSpacing: 0.6,
@@ -502,14 +512,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        backgroundColor: 'rgba(248,113,113,0.07)',
+        backgroundColor: themeColor(colors, 'rgba(248,113,113,0.07)'),
         borderRadius: 8,
         padding: 10,
         marginTop: 12,
     },
     errorText: {
         flex: 1,
-        color: '#fca5a5',
+        color: themeColor(colors, '#fca5a5'),
         fontSize: 11,
         lineHeight: 16,
     },
@@ -522,56 +532,56 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     dateHeaderPressed: {
-        backgroundColor: 'rgba(255,255,255,0.025)',
+        backgroundColor: themeColor(colors, 'rgba(255,255,255,0.025)'),
     },
     timelineDot: {
         width: 7,
         height: 7,
         borderRadius: 4,
-        backgroundColor: '#8b929c',
+        backgroundColor: themeColor(colors, '#8b929c'),
         marginLeft: 3,
         marginRight: 14,
     },
     timelineDotMissed: {
-        backgroundColor: '#70474c',
+        backgroundColor: themeColor(colors, '#70474c'),
     },
     dateInformation: {
         flex: 1,
     },
     dateText: {
-        color: '#c9ccd2',
+        color: themeColor(colors, '#c9ccd2'),
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 0.2,
     },
     dateSubtitle: {
-        color: '#9297a1',
+        color: themeColor(colors, '#9297a1'),
         fontSize: 9,
         marginTop: 3,
     },
     missedSubtitle: {
-        color: '#a66b70',
+        color: themeColor(colors, '#a66b70'),
     },
     sectionBadge: {
         borderRadius: 20,
-        backgroundColor: 'rgba(114,188,224,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.08)'),
         paddingHorizontal: 9,
         paddingVertical: 5,
     },
     sectionBadgeText: {
-        color: '#72bce0',
+        color: themeColor(colors, '#72bce0'),
         fontSize: 8,
         fontWeight: '900',
         letterSpacing: 0.6,
     },
     missedBadge: {
-        backgroundColor: 'rgba(248,113,113,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(248,113,113,0.08)'),
     },
     missedBadgeText: {
-        color: '#f87171',
+        color: themeColor(colors, '#f87171'),
     },
     sectionStatus: {
-        color: '#737983',
+        color: themeColor(colors, '#737983'),
         fontSize: 10,
         fontWeight: '500',
     },
@@ -581,7 +591,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     missedStatus: {
-        color: '#9a5d62',
+        color: themeColor(colors, '#9a5d62'),
     },
     timelineItem: {
         position: 'relative',
@@ -593,7 +603,7 @@ const styles = StyleSheet.create({
         top: -2,
         bottom: 0,
         width: 1,
-        backgroundColor: '#24262c',
+        backgroundColor: themeColor(colors, '#24262c'),
     },
     logCard: {
         flexDirection: 'row',
@@ -610,10 +620,10 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: 3,
-        backgroundColor: '#6ee7b7',
+        backgroundColor: themeColor(colors, '#6ee7b7'),
     },
     cardAccentFailed: {
-        backgroundColor: '#f87171',
+        backgroundColor: themeColor(colors, '#f87171'),
     },
     logHeader: {
         flexDirection: 'row',
@@ -631,7 +641,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         width: 42,
-        color: '#555a63',
+        color: themeColor(colors, '#555a63'),
         fontSize: 10,
         fontWeight: '500',
     },
@@ -643,23 +653,23 @@ const styles = StyleSheet.create({
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: '#6ee7b7',
+        backgroundColor: themeColor(colors, '#6ee7b7'),
         marginRight: 5,
     },
     statusDotFailed: {
-        backgroundColor: '#f87171',
+        backgroundColor: themeColor(colors, '#f87171'),
     },
     statusText: {
-        color: '#789b8c',
+        color: themeColor(colors, '#789b8c'),
         fontSize: 9,
         fontWeight: '600',
         letterSpacing: 0.4,
     },
     statusFailed: {
-        color: '#f87171',
+        color: themeColor(colors, '#f87171'),
     },
     exerciseName: {
-        color: '#e4e6ea',
+        color: themeColor(colors, '#e4e6ea'),
         fontSize: 15,
         fontWeight: '600',
     },
@@ -673,12 +683,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     exerciseDetails: {
-        color: '#686d76',
+        color: themeColor(colors, '#686d76'),
         fontSize: 11,
         marginTop: 5,
     },
     detailSeparator: {
-        color: '#34373d',
+        color: themeColor(colors, '#34373d'),
     },
     metricsRow: {
         flexDirection: 'row',
@@ -688,12 +698,12 @@ const styles = StyleSheet.create({
         minWidth: 45,
     },
     metricValue: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 16,
         fontWeight: '900',
     },
     metricLabel: {
-        color: '#9297a1',
+        color: themeColor(colors, '#9297a1'),
         fontSize: 8,
         fontWeight: '800',
         letterSpacing: 0.7,
@@ -702,21 +712,21 @@ const styles = StyleSheet.create({
     metricDivider: {
         width: 1,
         height: 28,
-        backgroundColor: '#30333c',
+        backgroundColor: themeColor(colors, '#30333c'),
         marginHorizontal: 13,
     },
     statBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
-        backgroundColor: 'rgba(185,167,255,0.08)',
+        backgroundColor: themeColor(colors, 'rgba(185,167,255,0.08)'),
         borderRadius: 20,
         paddingHorizontal: 9,
         paddingVertical: 6,
         marginLeft: 'auto',
     },
     statText: {
-        color: '#8c829e',
+        color: themeColor(colors, '#8c829e'),
         fontSize: 11,
         fontWeight: '600',
         textTransform: 'uppercase',

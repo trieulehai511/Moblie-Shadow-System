@@ -1,5 +1,5 @@
 // src/screens/LoginScreen.tsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -23,11 +23,18 @@ import {
     getMySettings,
     toAppLanguage,
 } from '../services/settingService';
+import {
+    ThemeColors,
+    themeColor,
+    useAppTheme,
+} from '../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
     const { t } = useTranslation();
+    const { colors, setThemePreference } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [userName, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -53,6 +60,7 @@ export default function LoginScreen({ navigation }: Props) {
                     const language = toAppLanguage(settings.language);
 
                     await i18n.changeLanguage(language);
+                    setThemePreference(settings.theme);
 
                     await AsyncStorage.setItem(
                         'shadow_system_settings',
@@ -78,7 +86,7 @@ export default function LoginScreen({ navigation }: Props) {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -87,10 +95,10 @@ export default function LoginScreen({ navigation }: Props) {
                     <MaterialCommunityIcons
                         name="boxing-glove"
                         size={42}
-                        color="#ffffff"
+                        color={themeColor(colors, '#ffffff')}
                         style={styles.logoIcon}
                     />
-                    <Text style={styles.title}>
+                    <Text style={[styles.title, { color: colors.text }]}>
                         {t('auth.title')}
                     </Text>
                 </View>
@@ -98,13 +106,13 @@ export default function LoginScreen({ navigation }: Props) {
                 {/* Form Inputs */}
                 <View style={styles.form}>
                     {/* USERNAME */}
-                    <Text style={styles.label}>{t('auth.username')}</Text>
-                    <View style={styles.inputWrapper}>
-                        <Feather name="credit-card" size={18} color="#6e7681" style={styles.inputIcon} />
+                    <Text style={[styles.label, { color: colors.mutedText }]}>{t('auth.username')}</Text>
+                    <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                        <Feather name="credit-card" size={18} color={themeColor(colors, '#6e7681')} style={styles.inputIcon} />
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { color: colors.text }]}
                             placeholder={t('auth.usernamePlaceholder')}
-                            placeholderTextColor="#484f58"
+                            placeholderTextColor={themeColor(colors, '#484f58')}
                             value={userName}
                             onChangeText={setUsername}
                             autoCapitalize="none"
@@ -113,15 +121,15 @@ export default function LoginScreen({ navigation }: Props) {
 
                     {/* PASSCODE */}
                     <View style={styles.labelRow}>
-                        <Text style={styles.label}>{t('auth.passcode')}</Text>
+                        <Text style={[styles.label, { color: colors.mutedText }]}>{t('auth.passcode')}</Text>
 
                     </View>
-                    <View style={styles.inputWrapper}>
-                        <Feather name="key" size={18} color="#6e7681" style={styles.inputIcon} />
+                    <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                        <Feather name="key" size={18} color={themeColor(colors, '#6e7681')} style={styles.inputIcon} />
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { color: colors.text }]}
                             placeholder="••••••••"
-                            placeholderTextColor="#484f58"
+                            placeholderTextColor={themeColor(colors, '#484f58')}
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry={!showPassword}
@@ -130,7 +138,7 @@ export default function LoginScreen({ navigation }: Props) {
                             <Feather
                                 name={showPassword ? 'eye-off' : 'eye'}
                                 size={18}
-                                color="#6e7681"
+                                color={themeColor(colors, '#6e7681')}
                             />
                         </TouchableOpacity>
                     </View>
@@ -151,10 +159,10 @@ export default function LoginScreen({ navigation }: Props) {
                         disabled={loading}
                     >
                         {loading ? (
-                            <ActivityIndicator color="#0d1117" />
+                            <ActivityIndicator color={themeColor(colors, '#0d1117')} />
                         ) : (
                             <View style={styles.buttonContent}>
-                                <Feather name="log-in" size={18} color="#0d1117" style={{ marginRight: 8 }} />
+                                <Feather name="log-in" size={18} color={themeColor(colors, '#0d1117')} style={{ marginRight: 8 }} />
                                 <Text style={styles.buttonText}>{t('auth.login')}</Text>
                             </View>
                         )}
@@ -173,10 +181,10 @@ export default function LoginScreen({ navigation }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#080a0f', // Đen chuẩn tối giản
+        backgroundColor: themeColor(colors, '#080a0f'), // Đen chuẩn tối giản
     },
     scrollContent: {
         flexGrow: 1,
@@ -194,11 +202,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 26,
         fontWeight: '800',
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         letterSpacing: 2,
     },
     cursor: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontWeight: '300',
     },
     form: {
@@ -211,14 +219,14 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     label: {
-        color: '#8b949e',
+        color: themeColor(colors, '#8b949e'),
         fontSize: 11,
         fontWeight: '700',
         letterSpacing: 0.8,
         marginBottom: 8,
     },
     recoverText: {
-        color: '#8b949e',
+        color: themeColor(colors, '#8b949e'),
         fontSize: 12,
         marginTop: 12,
         alignSelf: 'flex-end',
@@ -226,9 +234,9 @@ const styles = StyleSheet.create({
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#0f131a',
+        backgroundColor: themeColor(colors, '#0f131a'),
         borderWidth: 1,
-        borderColor: '#21262d',
+        borderColor: themeColor(colors, '#21262d'),
         borderRadius: 8,
         paddingHorizontal: 14,
         height: 48,
@@ -239,11 +247,11 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 14,
     },
     button: {
-        backgroundColor: '#f0f6fc', // Nút trắng nổi bật
+        backgroundColor: themeColor(colors, '#f0f6fc'), // Nút trắng nổi bật
         borderRadius: 8,
         height: 48,
         justifyContent: 'center',
@@ -255,7 +263,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buttonText: {
-        color: '#0d1117',
+        color: themeColor(colors, '#0d1117'),
         fontWeight: '700',
         fontSize: 15,
     },
@@ -266,11 +274,11 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     footerText: {
-        color: '#8b949e',
+        color: themeColor(colors, '#8b949e'),
         fontSize: 13,
     },
     signUpText: {
-        color: '#ffffff',
+        color: themeColor(colors, '#ffffff'),
         fontSize: 13,
         fontWeight: '700',
     },
