@@ -124,9 +124,18 @@
       "progress": "Đã xác nhận tiến độ. Tiếp tục tiến lên."
     },
     "pace": {
-      "STRONG": { "title": "MẠNH", "subtitle": "Nhanh & nặng" },
-      "AVERAGE": { "title": "TRUNG BÌNH", "subtitle": "Vừa phải" },
-      "WEAK": { "title": "NHẸ", "subtitle": "Nhẹ nhàng" }
+      "STRONG": {
+        "title": "MẠNH",
+        "subtitle": "Nhanh & nặng"
+      },
+      "AVERAGE": {
+        "title": "TRUNG BÌNH",
+        "subtitle": "Vừa phải"
+      },
+      "WEAK": {
+        "title": "NHẸ",
+        "subtitle": "Nhẹ nhàng"
+      }
     }
   },
   "profile": {
@@ -209,5 +218,17 @@
   "main": {
     "welcome": "Chào mừng đến ứng dụng!",
     "loginSuccess": "Đăng nhập thành công"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "back": "Quay lại",
+    "language": "Ngôn ngữ",
+    "theme": "Chủ đề",
+    "region": "Khu vực",
+    "themeSystem": "Theo hệ thống",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "loadFailed": "Không thể tải cài đặt.",
+    "saveFailed": "Không thể lưu cài đặt."
   }
 }

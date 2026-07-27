@@ -27,8 +27,50 @@ import {
 import { HunterProfileResponse } from '../models/ProfileModel';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
+import {
+    UserLanguage,
+    UserRegion,
+    UserSetting,
+    UserTheme,
+} from '../models/UserSettingModel';
 
+import {
+    getMySettings,
+    toAppLanguage,
+    updateMySettings,
+} from '../services/settingService';
 
+const LANGUAGE_OPTIONS: Array<{
+    value: UserLanguage;
+    label: string;
+    flag: string;
+}> = [
+        { value: 'VI', label: 'Tiếng Việt', flag: '🇻🇳' },
+        { value: 'EN', label: 'English', flag: '🇺🇸' },
+        { value: 'JA', label: '日本語', flag: '🇯🇵' },
+        { value: 'KO', label: '한국어', flag: '🇰🇷' },
+    ];
+
+const THEME_OPTIONS: Array<{
+    value: UserTheme;
+    labelKey: string;
+}> = [
+        { value: 'SYSTEM', labelKey: 'settings.themeSystem' },
+        { value: 'LIGHT', labelKey: 'settings.themeLight' },
+        { value: 'DARK', labelKey: 'settings.themeDark' },
+    ];
+
+const REGION_OPTIONS: Array<{
+    value: UserRegion;
+    label: string;
+    flag: string;
+}> = [
+        { value: 'VN', label: 'Việt Nam', flag: '🇻🇳' },
+        { value: 'US', label: 'United States', flag: '🇺🇸' },
+        { value: 'JP', label: 'Japan', flag: '🇯🇵' },
+        { value: 'KR', label: 'South Korea', flag: '🇰🇷' },
+        { value: 'SG', label: 'Singapore', flag: '🇸🇬' },
+    ];
 
 const rankStyles: Record<string, TextStyle> = {
     S: {
@@ -98,10 +140,10 @@ const attributeMessageKeys: Record<AttributeLabel, string[]> = {
 const getAttributeMessage = (attribute: AttributeLabel, value: number) => {
     const level =
         value < 20 ? 0 :
-        value < 40 ? 1 :
-        value < 60 ? 2 :
-        value < 80 ? 3 :
-        value < 100 ? 4 : 5;
+            value < 40 ? 1 :
+                value < 60 ? 2 :
+                    value < 80 ? 3 :
+                        value < 100 ? 4 : 5;
 
     return i18n.t(attributeMessageKeys[attribute][level]);
 };
@@ -184,6 +226,13 @@ function AttributeCard({
 
 export default function ProfileScreen({ navigation }: any) {
     const { t } = useTranslation();
+    const [settingsVisible, setSettingsVisible] = useState(false);
+    const [selectedSettingsSection, setSelectedSettingsSection] = useState<
+        'language' | 'theme' | 'region' | null
+    >(null);
+    const [settings, setSettings] = useState<UserSetting | null>(null);
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [settingsSaving, setSettingsSaving] = useState(false);
     const [profile, setProfile] = useState<HunterProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -313,6 +362,78 @@ export default function ProfileScreen({ navigation }: any) {
         );
     };
 
+    const openSettings = async () => {
+        setSelectedSettingsSection(null);
+        setSettingsLoading(true);
+        setSettingsVisible(true);
+        try {
+            const savedSettings = await getMySettings();
+            setSettings(savedSettings);
+        } catch (error: any) {
+            Alert.alert(
+                t('common.error'),
+                error.response?.data?.message || t('settings.loadFailed')
+            );
+        } finally {
+            setSettingsLoading(false);
+        }
+    }
+    const changeSetting = async (
+        field: 'language' | 'theme' | 'region',
+        value: UserLanguage | UserTheme | UserRegion
+    ) => {
+        if (!settings || settingsSaving) {
+            return;
+        }
+
+        const previousSettings = settings;
+
+        const nextSettings: UserSetting = {
+            ...settings,
+            [field]: value,
+        };
+
+        // Cập nhật UI trước
+        setSettings(nextSettings);
+        setSettingsSaving(true);
+
+        if (field === 'language') {
+            await i18n.changeLanguage(
+                toAppLanguage(value as UserLanguage)
+            );
+        }
+
+        try {
+            const updatedSettings = await updateMySettings({
+                region: nextSettings.region,
+                language: nextSettings.language,
+                theme: nextSettings.theme,
+            });
+
+            setSettings(updatedSettings);
+
+            await AsyncStorage.setItem(
+                'shadow_system_settings',
+                JSON.stringify(updatedSettings)
+            );
+        } catch (error: any) {
+            // Trả lại setting cũ khi API lỗi
+            setSettings(previousSettings);
+
+            if (field === 'language') {
+                await i18n.changeLanguage(
+                    toAppLanguage(previousSettings.language)
+                );
+            }
+
+            Alert.alert(
+                t('common.error'),
+                error.response?.data?.message || t('settings.saveFailed')
+            );
+        } finally {
+            setSettingsSaving(false);
+        }
+    };
     const openAttributeInfo = (
         title: string,
         shortLabel: AttributeLabel,
@@ -377,9 +498,11 @@ export default function ProfileScreen({ navigation }: any) {
                     <TouchableOpacity
                         style={styles.logoutButton}
                         activeOpacity={0.8}
-                        onPress={handleLogout}
+                        onPress={openSettings}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('settings.title')}
                     >
-                        <Feather name="log-out" size={25} color="#72bce0" />
+                        <Feather name="menu" size={27} color="#72bce0" />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.identityRow}>
@@ -628,7 +751,342 @@ export default function ProfileScreen({ navigation }: any) {
                     </View>
                 </View>
             </ScrollView>
+            <Modal
+                visible={settingsVisible}
+                transparent
+                animationType="slide"
+                statusBarTranslucent
+                onRequestClose={() => {
+                    if (selectedSettingsSection) {
+                        setSelectedSettingsSection(null);
+                    } else {
+                        setSettingsVisible(false);
+                    }
+                }}
+            >
+                <View style={styles.settingsBackdrop}>
+                    <SafeAreaView style={styles.settingsSheet}>
+                        <View style={styles.settingsHeader}>
+                            {selectedSettingsSection ? (
+                                <TouchableOpacity
+                                    style={styles.settingsHeaderButton}
+                                    onPress={() => setSelectedSettingsSection(null)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('settings.back')}
+                                >
+                                    <Feather
+                                        name="chevron-left"
+                                        size={25}
+                                        color="#ffffff"
+                                    />
+                                </TouchableOpacity>
+                            ) : null}
 
+                            <Text style={styles.settingsTitle}>
+                                {selectedSettingsSection
+                                    ? t(`settings.${selectedSettingsSection}`)
+                                    : t('settings.title')}
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.settingsHeaderButton}
+                                onPress={() => {
+                                    setSelectedSettingsSection(null);
+                                    setSettingsVisible(false);
+                                }}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('common.close')}
+                            >
+                                <Feather name="x" size={24} color="#ffffff" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {settingsLoading || !settings ? (
+                            <View style={styles.settingsLoading}>
+                                <ActivityIndicator size="large" color="#72bce0" />
+                            </View>
+                        ) : (
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                {selectedSettingsSection === 'language' ? (
+                                    <View style={styles.settingsOptions}>
+                                    {LANGUAGE_OPTIONS.map(option => {
+                                        const selected =
+                                            settings.language === option.value;
+
+                                        return (
+                                            <TouchableOpacity
+                                                key={option.value}
+                                                style={[
+                                                    styles.settingsOption,
+                                                    selected && styles.settingsOptionSelected,
+                                                ]}
+                                                disabled={settingsSaving}
+                                                onPress={() =>
+                                                    changeSetting('language', option.value)
+                                                }
+                                            >
+                                                <View style={styles.settingsOptionLabel}>
+                                                    <Text style={styles.settingsFlag}>
+                                                        {option.flag}
+                                                    </Text>
+                                                    <Text style={styles.settingsOptionText}>
+                                                        {option.label}
+                                                    </Text>
+                                                </View>
+
+                                                {selected ? (
+                                                    <Feather
+                                                        name="check"
+                                                        size={18}
+                                                        color="#72bce0"
+                                                    />
+                                                ) : null}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                    </View>
+                                ) : null}
+
+                                {selectedSettingsSection === 'theme' ? (
+                                    <View style={styles.settingsOptions}>
+                                    {THEME_OPTIONS.map(option => {
+                                        const selected = settings.theme === option.value;
+
+                                        return (
+                                            <TouchableOpacity
+                                                key={option.value}
+                                                style={[
+                                                    styles.settingsOption,
+                                                    selected && styles.settingsOptionSelected,
+                                                ]}
+                                                disabled={settingsSaving}
+                                                onPress={() =>
+                                                    changeSetting('theme', option.value)
+                                                }
+                                            >
+                                                <View style={styles.settingsOptionLabel}>
+                                                    <View
+                                                        style={[
+                                                            styles.themeColorCircle,
+                                                            option.value === 'LIGHT' &&
+                                                                styles.themeColorLight,
+                                                            option.value === 'DARK' &&
+                                                                styles.themeColorDark,
+                                                        ]}
+                                                    >
+                                                        {option.value === 'SYSTEM' ? (
+                                                            <>
+                                                                <View
+                                                                    style={styles.themeColorSystemLight}
+                                                                />
+                                                                <View
+                                                                    style={styles.themeColorSystemDark}
+                                                                />
+                                                            </>
+                                                        ) : null}
+                                                    </View>
+                                                    <Text style={styles.settingsOptionText}>
+                                                        {t(option.labelKey)}
+                                                    </Text>
+                                                </View>
+
+                                                {selected ? (
+                                                    <Feather
+                                                        name="check"
+                                                        size={18}
+                                                        color="#72bce0"
+                                                    />
+                                                ) : null}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                    </View>
+                                ) : null}
+
+                                {selectedSettingsSection === 'region' ? (
+                                    <View style={styles.settingsOptions}>
+                                    {REGION_OPTIONS.map(option => {
+                                        const selected = settings.region === option.value;
+
+                                        return (
+                                            <TouchableOpacity
+                                                key={option.value}
+                                                style={[
+                                                    styles.settingsOption,
+                                                    selected && styles.settingsOptionSelected,
+                                                ]}
+                                                disabled={settingsSaving}
+                                                onPress={() =>
+                                                    changeSetting('region', option.value)
+                                                }
+                                            >
+                                                <View style={styles.settingsOptionLabel}>
+                                                    <Text style={styles.settingsFlag}>
+                                                        {option.flag}
+                                                    </Text>
+                                                    <Text style={styles.settingsOptionText}>
+                                                        {option.label}
+                                                    </Text>
+                                                </View>
+
+                                                {selected ? (
+                                                    <Feather
+                                                        name="check"
+                                                        size={18}
+                                                        color="#72bce0"
+                                                    />
+                                                ) : null}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                    </View>
+                                ) : null}
+
+                                {selectedSettingsSection === null ? (
+                                    <View style={styles.settingsMenu}>
+                                        <TouchableOpacity
+                                            style={styles.settingsMenuItem}
+                                            onPress={() =>
+                                                setSelectedSettingsSection('language')
+                                            }
+                                        >
+                                            <View style={styles.settingsMenuItemStart}>
+                                                <Feather
+                                                    name="globe"
+                                                    size={20}
+                                                    color="#72bce0"
+                                                />
+                                                <View>
+                                                    <Text style={styles.settingsMenuLabel}>
+                                                        {t('settings.language')}
+                                                    </Text>
+                                                    <Text style={styles.settingsMenuValue}>
+                                                        {(() => {
+                                                            const option =
+                                                                LANGUAGE_OPTIONS.find(
+                                                                    item =>
+                                                                        item.value ===
+                                                                        settings.language
+                                                                );
+                                                            return option
+                                                                ? `${option.flag} ${option.label}`
+                                                                : settings.language;
+                                                        })()}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <Feather
+                                                name="chevron-right"
+                                                size={21}
+                                                color="#616670"
+                                            />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.settingsMenuItem}
+                                            onPress={() =>
+                                                setSelectedSettingsSection('theme')
+                                            }
+                                        >
+                                            <View style={styles.settingsMenuItemStart}>
+                                                <Feather
+                                                    name="moon"
+                                                    size={20}
+                                                    color="#72bce0"
+                                                />
+                                                <View>
+                                                    <Text style={styles.settingsMenuLabel}>
+                                                        {t('settings.theme')}
+                                                    </Text>
+                                                    <Text style={styles.settingsMenuValue}>
+                                                        {t(
+                                                            THEME_OPTIONS.find(
+                                                                option =>
+                                                                    option.value === settings.theme
+                                                            )?.labelKey ??
+                                                                'settings.themeSystem'
+                                                        )}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <Feather
+                                                name="chevron-right"
+                                                size={21}
+                                                color="#616670"
+                                            />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.settingsMenuItem}
+                                            onPress={() =>
+                                                setSelectedSettingsSection('region')
+                                            }
+                                        >
+                                            <View style={styles.settingsMenuItemStart}>
+                                                <Feather
+                                                    name="map-pin"
+                                                    size={20}
+                                                    color="#72bce0"
+                                                />
+                                                <View>
+                                                    <Text style={styles.settingsMenuLabel}>
+                                                        {t('settings.region')}
+                                                    </Text>
+                                                    <Text style={styles.settingsMenuValue}>
+                                                        {(() => {
+                                                            const option =
+                                                                REGION_OPTIONS.find(
+                                                                    item =>
+                                                                        item.value ===
+                                                                        settings.region
+                                                                );
+                                                            return option
+                                                                ? `${option.flag} ${option.label}`
+                                                                : settings.region;
+                                                        })()}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <Feather
+                                                name="chevron-right"
+                                                size={21}
+                                                color="#616670"
+                                            />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.settingsMenuItem,
+                                                styles.settingsLogoutMenuItem,
+                                            ]}
+                                            disabled={settingsSaving}
+                                            onPress={handleLogout}
+                                        >
+                                            <View style={styles.settingsMenuItemStart}>
+                                                <Feather
+                                                    name="log-out"
+                                                    size={20}
+                                                    color="#f87171"
+                                                />
+                                                <Text style={styles.settingsLogoutText}>
+                                                    {t('profile.logout')}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : null}
+
+                                {settingsSaving ? (
+                                    <ActivityIndicator
+                                        style={styles.settingsSaving}
+                                        color="#72bce0"
+                                    />
+                                ) : null}
+                            </ScrollView>
+                        )}
+                    </SafeAreaView>
+                </View>
+            </Modal>
             <Modal
                 visible={selectedInfo !== null}
                 transparent
@@ -1142,6 +1600,190 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         fontWeight: '500',
         fontStyle: 'italic',
+    },
+    settingsBackdrop: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    },
+
+    settingsSheet: {
+        maxHeight: '90%',
+        backgroundColor: '#0d1117',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 24,
+    },
+
+    settingsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+
+    settingsHeaderButton: {
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    settingsTitle: {
+        flex: 1,
+        color: '#ffffff',
+        fontSize: 22,
+        fontWeight: '800',
+    },
+
+    settingsLoading: {
+        minHeight: 300,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    settingsSectionTitle: {
+        color: '#8b949e',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 1,
+        marginTop: 18,
+        marginBottom: 10,
+        textTransform: 'uppercase',
+    },
+
+    settingsOptions: {
+        gap: 8,
+    },
+
+    settingsMenu: {
+        gap: 10,
+    },
+
+    settingsMenuItem: {
+        minHeight: 64,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        backgroundColor: '#11161d',
+        borderWidth: 1,
+        borderColor: '#21262d',
+        borderRadius: 12,
+    },
+
+    settingsMenuItemStart: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 13,
+    },
+
+    settingsMenuLabel: {
+        color: '#e5e7eb',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+
+    settingsMenuValue: {
+        color: '#777d88',
+        fontSize: 12,
+        marginTop: 3,
+    },
+
+    settingsLogoutMenuItem: {
+        marginTop: 10,
+        borderColor: 'rgba(248, 113, 113, 0.35)',
+        backgroundColor: 'rgba(248, 113, 113, 0.06)',
+    },
+
+    settingsOption: {
+        minHeight: 48,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        backgroundColor: '#11161d',
+        borderWidth: 1,
+        borderColor: '#21262d',
+        borderRadius: 10,
+    },
+
+    settingsOptionSelected: {
+        borderColor: '#72bce0',
+        backgroundColor: 'rgba(114, 188, 224, 0.1)',
+    },
+
+    settingsOptionLabel: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+
+    settingsFlag: {
+        fontSize: 24,
+    },
+
+    settingsOptionText: {
+        color: '#e5e7eb',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+
+    themeColorCircle: {
+        width: 26,
+        height: 26,
+        flexDirection: 'row',
+        overflow: 'hidden',
+        borderRadius: 13,
+        borderWidth: 1,
+        borderColor: '#4b5563',
+    },
+
+    themeColorLight: {
+        backgroundColor: '#f8fafc',
+        borderColor: '#cbd5e1',
+    },
+
+    themeColorDark: {
+        backgroundColor: '#080a0f',
+        borderColor: '#4b5563',
+    },
+
+    themeColorSystemLight: {
+        width: '50%',
+        height: '100%',
+        backgroundColor: '#f8fafc',
+    },
+
+    themeColorSystemDark: {
+        width: '50%',
+        height: '100%',
+        backgroundColor: '#080a0f',
+    },
+
+    settingsLogoutButton: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 9,
+        marginTop: 28,
+        borderWidth: 1,
+        borderColor: 'rgba(248, 113, 113, 0.4)',
+        borderRadius: 10,
+        backgroundColor: 'rgba(248, 113, 113, 0.08)',
+    },
+
+    settingsLogoutText: {
+        color: '#f87171',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+
+    settingsSaving: {
+        marginTop: 14,
     },
 
 });

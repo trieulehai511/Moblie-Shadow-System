@@ -126,9 +126,18 @@
       "progress": "Progress confirmed. Keep moving."
     },
     "pace": {
-      "STRONG": { "title": "STRONG", "subtitle": "Fast & Heavy" },
-      "AVERAGE": { "title": "AVERAGE", "subtitle": "Moderate" },
-      "WEAK": { "title": "WEAK", "subtitle": "Light" }
+      "STRONG": {
+        "title": "STRONG",
+        "subtitle": "Fast & Heavy"
+      },
+      "AVERAGE": {
+        "title": "AVERAGE",
+        "subtitle": "Moderate"
+      },
+      "WEAK": {
+        "title": "WEAK",
+        "subtitle": "Light"
+      }
     }
   },
   "profile": {
@@ -211,5 +220,17 @@
   "main": {
     "welcome": "Welcome to Main App!",
     "loginSuccess": "Login successful"
+  },
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "language": "Language",
+    "theme": "Theme",
+    "region": "Region",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "loadFailed": "Unable to load settings.",
+    "saveFailed": "Unable to save settings."
   }
 }
