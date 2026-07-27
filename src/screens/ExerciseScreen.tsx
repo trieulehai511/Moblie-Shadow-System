@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function HunterSearchScreen() {
+export default function ExerciseScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>HUNTER SEARCH SCREEN</Text>
+      <Text style={styles.text}>EXERCISE SCREEN</Text>
     </View>
   );
 }

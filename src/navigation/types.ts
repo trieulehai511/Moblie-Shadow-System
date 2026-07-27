@@ -5,7 +5,7 @@ export type MainTabParamList ={
     DailyQuest: undefined;
     Leaderboard: undefined;
     HistoryLog: undefined;
-    HunterSearch: undefined;
+    Exercise: undefined;
     Profile: undefined;
 }
 
