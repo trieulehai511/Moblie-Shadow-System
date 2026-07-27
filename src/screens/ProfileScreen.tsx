@@ -531,15 +531,6 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
                 <View style={styles.identityRow}>
                     <Text style={styles.username}>{userName}</Text>
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        activeOpacity={0.8}
-                        onPress={() =>
-                            Alert.alert(t('profile.edit'), t('common.featureComingSoon'))
-                        }
-                    >
-                        <Text style={styles.editButtonText}>{t('profile.edit')}</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.summaryRow}>
@@ -1011,6 +1002,43 @@ export default function ProfileScreen({ navigation }: any) {
                                                 },
                                             ]}
                                             onPress={() =>
+                                                Alert.alert(
+                                                    t('profile.edit'),
+                                                    t('common.featureComingSoon')
+                                                )
+                                            }
+                                        >
+                                            <View style={styles.settingsMenuItemStart}>
+                                                <Feather
+                                                    name="edit-3"
+                                                    size={20}
+                                                    color={colors.accent}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.settingsMenuLabel,
+                                                        { color: colors.text },
+                                                    ]}
+                                                >
+                                                    {t('profile.edit')}
+                                                </Text>
+                                            </View>
+                                            <Feather
+                                                name="chevron-right"
+                                                size={21}
+                                                color={colors.mutedText}
+                                            />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.settingsMenuItem,
+                                                {
+                                                    backgroundColor: colors.elevated,
+                                                    borderColor: colors.border,
+                                                },
+                                            ]}
+                                            onPress={() =>
                                                 setSelectedSettingsSection('language')
                                             }
                                         >
@@ -1346,22 +1374,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         lineHeight: 36,
         fontWeight: '800',
         marginRight: 22,
-    },
-    editButton: {
-        minHeight: 42,
-        paddingHorizontal: 18,
-        backgroundColor: themeColor(colors, '#292a2f'),
-        borderWidth: 1,
-        borderColor: themeColor(colors, '#41434a'),
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    editButtonText: {
-        color: themeColor(colors, '#f5f5f5'),
-        fontSize: 15,
-        fontWeight: '700',
-        letterSpacing: 0.4,
     },
     summaryRow: {
         flexDirection: 'row',
