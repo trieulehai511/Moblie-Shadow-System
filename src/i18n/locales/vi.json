@@ -89,7 +89,7 @@
     "attributesIncreased": "Chỉ số đã tăng",
     "targetSets": "SỐ HIỆP MỤC TIÊU",
     "targetReps": "SỐ LẦN MỤC TIÊU",
-    "restDay": "Hôm nay là ngày nghỉ. Bạn vẫn muốn nhận thử thách mới?",
+    "restDay": "Hôm nay là ngày nghỉ. Ngươi vẫn muốn nhận thử thách mới?",
     "noAssignedQuest": "Chưa có nhiệm vụ. Khởi tạo chỉ thị hôm nay ngay.",
     "initializing": "ĐANG KHỞI TẠO...",
     "initializeToday": "KHỞI TẠO NHIỆM VỤ HÔM NAY",
@@ -118,9 +118,9 @@
     "recording": "ĐANG GHI NHẬN...",
     "completeAndClaim": "HOÀN THÀNH & NHẬN THƯỞNG",
     "completionMessages": {
-      "attributes": "Các chỉ số thể chất của bạn đã tăng.",
+      "attributes": "Các chỉ số thể chất của ngươi đã tăng.",
       "effort": "Nỗ lực hôm nay đã được ghi nhận.",
-      "stronger": "Bạn mạnh hơn chính mình ngày hôm qua.",
+      "stronger": "Ngươi mạnh hơn chính mình ngày hôm qua.",
       "progress": "Đã xác nhận tiến độ. Tiếp tục tiến lên."
     },
     "pace": {
@@ -145,7 +145,7 @@
     "copySuccess": "Đã sao chép ID Thợ săn.",
     "copyFailed": "Không thể sao chép ID Thợ săn.",
     "logout": "Đăng xuất",
-    "logoutConfirm": "Bạn có chắc muốn đăng xuất không?",
+    "logoutConfirm": "Ngươi có chắc muốn đăng xuất không?",
     "edit": "Chỉnh sửa hồ sơ",
     "streak": "Chuỗi ngày",
     "best": "Tốt nhất",
@@ -162,15 +162,15 @@
     "rankPoint": "ĐIỂM XẾP HẠNG",
     "rankPointDescription": "Điểm tích lũy dùng để xác định thứ hạng Thợ săn.",
     "rpRemaining": "Còn {{count}} RP để đạt hạng {{rank}}.",
-    "highestRank": "Bạn đã đạt thứ hạng cao nhất.",
+    "highestRank": "Ngươi đã đạt thứ hạng cao nhất.",
     "currentStreak": "CHUỖI NGÀY HIỆN TẠI",
-    "currentStreakDescription": "Số ngày liên tiếp bạn hoàn thành hoạt động.",
+    "currentStreakDescription": "Số ngày liên tiếp ngươi hoàn thành hoạt động.",
     "maintainStreak": "Hãy giữ vững chuỗi ngày và chứng minh kỷ luật.",
     "bestStreak": "CHUỖI NGÀY TỐT NHẤT",
-    "bestStreakDescription": "Chuỗi ngày hoạt động dài nhất bạn từng đạt được.",
+    "bestStreakDescription": "Chuỗi ngày hoạt động dài nhất ngươi từng đạt được.",
     "surpassRecord": "Hãy vượt qua kỷ lục của chính mình.",
     "hunterRank": "HẠNG THỢ SĂN",
-    "hunterRankDescription": "Thứ hạng thể hiện sự trưởng thành của bạn.",
+    "hunterRankDescription": "Thứ hạng thể hiện sự trưởng thành của ngươi.",
     "nextPromotion": "Lần thăng hạng tiếp theo là hạng {{rank}}.",
     "strength": "SỨC MẠNH",
     "strengthDescription": "Đo sức mạnh thể chất và uy lực tấn công trực tiếp.",
@@ -179,33 +179,33 @@
     "vitality": "THỂ LỰC",
     "vitalityDescription": "Đo sức bền, khả năng chịu đựng và hồi phục thể chất.",
     "shield": "KHIÊN",
-    "shieldDescription": "Khiên bảo vệ chuỗi ngày khi bạn bỏ lỡ một nhiệm vụ.",
-    "shieldProtected": "Chuỗi ngày của bạn hiện đang được bảo vệ.",
-    "shieldUnprotected": "Bạn không có Khiên bảo vệ chuỗi ngày.",
+    "shieldDescription": "Khiên bảo vệ chuỗi ngày khi ngươi bỏ lỡ một nhiệm vụ.",
+    "shieldProtected": "Chuỗi ngày của ngươi hiện đang được bảo vệ.",
+    "shieldUnprotected": "Ngươi không có Khiên bảo vệ chuỗi ngày.",
     "attributeMessages": {
       "strength": {
-        "weak": "Sức mạnh của bạn vẫn còn quá yếu.",
+        "weak": "Sức mạnh của ngươi vẫn còn quá yếu.",
         "improved": "Sức chiến đấu đã tăng nhưng chưa đủ để áp đảo kẻ thù.",
-        "formidable": "Sức mạnh của bạn đang dần trở nên đáng gờm.",
-        "surpass": "Đòn đánh của bạn đã vượt qua phần lớn Thợ săn thông thường.",
+        "formidable": "Sức mạnh của ngươi đang dần trở nên đáng gờm.",
+        "surpass": "Đòn đánh của ngươi đã vượt qua phần lớn Thợ săn thông thường.",
         "limit": "Sức mạnh đang tiến gần giới hạn tự nhiên.",
         "extraordinary": "Sức mạnh phi thường. Giới hạn con người không còn áp dụng."
       },
       "agility": {
-        "weak": "Tốc độ và phản xạ của bạn vẫn còn quá chậm.",
-        "improved": "Bạn đã nhanh hơn nhưng chưa đủ để thoát mọi hiểm nguy.",
-        "formidable": "Phản xạ của bạn đang trở nên cực kỳ sắc bén.",
+        "weak": "Tốc độ và phản xạ của ngươi vẫn còn quá chậm.",
+        "improved": "Ngươi đã nhanh hơn nhưng chưa đủ để thoát mọi hiểm nguy.",
+        "formidable": "Phản xạ của ngươi đang trở nên cực kỳ sắc bén.",
         "surpass": "Tốc độ đã vượt qua phần lớn Thợ săn thông thường.",
         "limit": "Khả năng di chuyển đang tiến gần giới hạn tự nhiên.",
-        "extraordinary": "Tốc độ phi thường. Gần như không ai theo kịp bạn."
+        "extraordinary": "Tốc độ phi thường. Gần như không ai theo kịp ngươi."
       },
       "vitality": {
-        "weak": "Thể lực và sức bền của bạn vẫn còn quá yếu.",
-        "improved": "Bạn đã bền bỉ hơn nhưng chưa sẵn sàng cho trận chiến kéo dài.",
+        "weak": "Thể lực và sức bền của ngươi vẫn còn quá yếu.",
+        "improved": "Ngươi đã bền bỉ hơn nhưng chưa sẵn sàng cho trận chiến kéo dài.",
         "formidable": "Cơ thể giờ có thể chịu đựng những thử thách khắc nghiệt.",
         "surpass": "Sức bền đã vượt qua phần lớn Thợ săn thông thường.",
         "limit": "Thể lực đang tiến gần giới hạn tự nhiên.",
-        "extraordinary": "Sức bền phi thường. Cơ thể bạn gần như không biết mệt."
+        "extraordinary": "Sức bền phi thường. Cơ thể ngươi gần như không biết mệt."
       }
     }
   },
