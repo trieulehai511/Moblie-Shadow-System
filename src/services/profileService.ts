@@ -59,4 +59,18 @@ export async function updateMyProfile(
     );
 
     return response.data.result;
+
+}
+export async function getProfileByHunterCode(
+    hunterCode: string
+): Promise<HunterProfileResponse> {
+    const response = await api.get<{
+        result: HunterProfileResponse;
+    }>('/hunter/hunter-code', {
+        params: {
+            hunterCode,
+        },
+    });
+
+    return response.data.result;
 }

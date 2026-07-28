@@ -239,5 +239,13 @@
     "themeDark": "Dark",
     "loadFailed": "Unable to load settings.",
     "saveFailed": "Unable to save settings."
+  },
+  "leaderboard": {
+    "title": "LEADERBOARD",
+    "subtitle": "TOP {{count}} HUNTERS",
+    "loading": "LOADING LEADERBOARD...",
+    "loadFailed": "Unable to load leaderboard.",
+    "empty": "No ranking data available.",
+    "retry": "TRY AGAIN"
   }
 }

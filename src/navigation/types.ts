@@ -10,7 +10,12 @@ export type MainTabParamList ={
 }
 
 export type RootStackParamList = {
-    Login: undefined;
-    Register: undefined;
-    MainApp: NavigatorScreenParams<MainTabParamList>;
-}
+  Login: undefined;
+  Register: undefined;
+  MainApp: NavigatorScreenParams<MainTabParamList>;
+
+  HunterProfile: {
+    hunterCode: string;
+  };
+};
+

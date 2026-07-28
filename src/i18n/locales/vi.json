@@ -237,5 +237,13 @@
     "themeDark": "Tối",
     "loadFailed": "Không thể tải cài đặt.",
     "saveFailed": "Không thể lưu cài đặt."
+  },
+  "leaderboard": {
+    "title": "BẢNG XẾP HẠNG",
+    "subtitle": "TOP {{count}} THỢ SĂN",
+    "loading": "ĐANG TẢI BẢNG XẾP HẠNG...",
+    "loadFailed": "Không thể tải bảng xếp hạng.",
+    "empty": "Chưa có dữ liệu xếp hạng.",
+    "retry": "THỬ LẠI"
   }
 }
