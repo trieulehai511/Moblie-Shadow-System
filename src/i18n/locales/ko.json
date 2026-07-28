@@ -78,6 +78,7 @@
     "required": "필수",
     "done": "완료",
     "resume": "계속하기",
+    "inProgress": "진행 중",
     "train": "훈련",
     "completed": "완료됨",
     "remaining": "{{count}} 남음",
@@ -121,6 +122,7 @@
     "go": "시작",
     "recording": "기록 중...",
     "completeAndClaim": "완료 및 보상 획득",
+    "workoutNotFinished": "모든 세트를 마치고 진행 상황 동기화가 완료된 후 보상을 받으세요.",
     "completionMessages": {
       "attributes": "신체 능력치가 상승했습니다.",
       "effort": "오늘의 노력이 기록되었습니다.",

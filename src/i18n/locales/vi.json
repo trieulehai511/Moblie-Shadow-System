@@ -76,6 +76,7 @@
     "required": "Bắt buộc",
     "done": "Xong",
     "resume": "Tiếp tục",
+    "inProgress": "Đang tập",
     "train": "Tập luyện",
     "completed": "Đã hoàn thành",
     "remaining": "Còn {{count}}",
@@ -119,6 +120,7 @@
     "go": "BẮT ĐẦU",
     "recording": "ĐANG GHI NHẬN...",
     "completeAndClaim": "HOÀN THÀNH & NHẬN THƯỞNG",
+    "workoutNotFinished": "Hãy hoàn thành toàn bộ các hiệp và chờ đồng bộ tiến độ trước khi nhận thưởng.",
     "completionMessages": {
       "attributes": "Các chỉ số thể chất của ngươi đã tăng.",
       "effort": "Nỗ lực hôm nay đã được ghi nhận.",

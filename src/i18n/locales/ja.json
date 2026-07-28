@@ -78,6 +78,7 @@
     "required": "必須",
     "done": "完了",
     "resume": "再開",
+    "inProgress": "進行中",
     "train": "トレーニング",
     "completed": "完了済み",
     "remaining": "残り{{count}}",
@@ -121,6 +122,7 @@
     "go": "スタート",
     "recording": "記録中...",
     "completeAndClaim": "完了して報酬を獲得",
+    "workoutNotFinished": "すべてのセットを完了し、進捗の同期が終わってから報酬を受け取ってください。",
     "completionMessages": {
       "attributes": "身体能力が上昇しました。",
       "effort": "本日の努力が記録されました。",

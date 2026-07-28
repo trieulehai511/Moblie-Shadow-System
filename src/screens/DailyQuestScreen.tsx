@@ -90,6 +90,18 @@ const formatTime = (seconds: number) => {
     return `${minutes}:${remainder.toString().padStart(2, '0')}`;
 };
 
+const hasFinishedWorkoutTimer = (
+    session: ActiveQuestSession | null,
+    item: QuestItem | null
+) =>
+    Boolean(
+        session &&
+        item &&
+        session.phase === 'training' &&
+        session.currentSet >= item.targetSets &&
+        session.timeLeft === 0
+    );
+
 const getAttributes = (data: any): AttributeValues => {
     const profile = data?.result ?? data ?? {};
     return Object.fromEntries(
@@ -515,6 +527,18 @@ export default function DailyQuestScreen() {
                 setSelectedPace(restored.pace);
                 setSession(restored);
                 saveSession(restored);
+                setQuestData(previous =>
+                    previous
+                        ? {
+                            ...previous,
+                            questItems: previous.questItems.map(questItem =>
+                                questItem.id === item.id
+                                    ? { ...questItem, status: 'IN_PROGRESS' }
+                                    : questItem
+                            ),
+                        }
+                        : previous
+                );
                 return;
             } catch {
                 await AsyncStorage.removeItem(`${SESSION_PREFIX}${item.id}`);
@@ -574,6 +598,7 @@ export default function DailyQuestScreen() {
         pauseCurrentSession();
         setWorkoutItem(null);
         setErrorMessage(null);
+        void fetchQuest();
     };
 
     const startWorkout = async () => {
@@ -602,6 +627,21 @@ export default function DailyQuestScreen() {
                 timeLeft: timing.secondsPerSet,
                 isPaused: true,
             };
+            setQuestData(previous =>
+                previous
+                    ? {
+                        ...previous,
+                        questItems: previous.questItems.map(item =>
+                            item.id === workoutItem.id
+                                ? {
+                                    ...item,
+                                    status: 'IN_PROGRESS',
+                                }
+                                : item
+                        ),
+                    }
+                    : previous
+            );
             beginPreparation(nextSession);
         } catch (error: any) {
             setErrorMessage(
@@ -677,6 +717,17 @@ export default function DailyQuestScreen() {
 
     const completeWorkout = async () => {
         if (!workoutItem || actionLoading) return;
+        if (
+            !hasFinishedWorkoutTimer(sessionRef.current, workoutItem) ||
+            (sessionRef.current?.accumulatedSeconds ?? 0) <
+                (sessionRef.current?.totalRequiredSeconds ?? Number.MAX_SAFE_INTEGER)
+        ) {
+            Alert.alert(
+                t('common.notice'),
+                t('dailyQuest.workoutNotFinished')
+            );
+            return;
+        }
 
         setActionLoading(true);
         setErrorMessage(null);
@@ -839,7 +890,16 @@ export default function DailyQuestScreen() {
                     </Text>
                 </View>
 
-                {items.map(item => (
+                {items.map(item => {
+                    const inProgress =
+                        !item.completed &&
+                        (
+                            item.status === 'IN_PROGRESS' ||
+                            (item.accumulatedSeconds ?? 0) > 0 ||
+                            session?.itemId === item.id
+                        );
+
+                    return (
                     <View
                         key={item.id}
                         style={[
@@ -849,6 +909,7 @@ export default function DailyQuestScreen() {
                                 : bonus
                                     ? styles.questItemBonus
                                     : styles.questItemPending,
+                            inProgress && styles.questItemInProgress,
                         ]}
                     >
                         <View style={styles.questItemMain}>
@@ -856,10 +917,13 @@ export default function DailyQuestScreen() {
                                 style={[
                                     styles.stateIcon,
                                     item.completed && styles.stateIconComplete,
+                                    inProgress && styles.stateIconInProgress,
                                 ]}
                             >
                                 {item.completed ? (
                                     <Feather name="check" size={13} color={themeColor(colors, '#82b89d')} />
+                                ) : inProgress ? (
+                                    <Feather name="play" size={10} color={colors.accent} />
                                 ) : (
                                     <View
                                         style={[
@@ -882,6 +946,11 @@ export default function DailyQuestScreen() {
                                 <Text style={styles.exerciseTarget}>
                                     {item.targetSets} SETS × {item.targetReps} REPS
                                 </Text>
+                                {inProgress ? (
+                                    <Text style={styles.inProgressLabel}>
+                                        {t('dailyQuest.inProgress').toUpperCase()}
+                                    </Text>
+                                ) : null}
                             </View>
 
                             <TouchableOpacity
@@ -902,13 +971,18 @@ export default function DailyQuestScreen() {
                                 </View>
                             ) : (
                                 <TouchableOpacity
-                                    style={styles.trainButton}
+                                    style={[
+                                        styles.trainButton,
+                                        inProgress && styles.resumeButton,
+                                    ]}
                                     activeOpacity={0.75}
                                     onPress={() => void openWorkout(item)}
                                 >
-                                    <Text style={styles.trainButtonText}>
-                                        {item.status === 'IN_PROGRESS' ||
-                                        (item.accumulatedSeconds ?? 0) > 0
+                                    <Text style={[
+                                        styles.trainButtonText,
+                                        inProgress && styles.resumeButtonText,
+                                    ]}>
+                                        {inProgress
                                             ? t('dailyQuest.resume').toUpperCase()
                                             : t('dailyQuest.train').toUpperCase()}
                                     </Text>
@@ -916,7 +990,8 @@ export default function DailyQuestScreen() {
                             )}
                         </View>
                     </View>
-                ))}
+                    );
+                })}
             </View>
         );
     };
@@ -1467,8 +1542,12 @@ export default function DailyQuestScreen() {
                                             </TouchableOpacity>
                                         </View>
 
-                                        {session.accumulatedSeconds >=
-                                        session.totalRequiredSeconds ? (
+                                        {hasFinishedWorkoutTimer(
+                                            session,
+                                            workoutItem
+                                        ) &&
+                                        session.accumulatedSeconds >=
+                                            session.totalRequiredSeconds ? (
                                             <TouchableOpacity
                                                 style={styles.completeButton}
                                                 disabled={actionLoading}
@@ -1802,6 +1881,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         backgroundColor: themeColor(colors, 'rgba(99, 158, 124, 0.055)'),
         borderColor: themeColor(colors, 'rgba(99, 158, 124, 0.22)'),
     },
+    questItemInProgress: {
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.10)'),
+        borderColor: themeColor(colors, 'rgba(114,188,224,0.58)'),
+        borderLeftWidth: 3,
+    },
     questItemMain: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1821,6 +1905,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         borderColor: themeColor(colors, 'rgba(130,184,157,0.55)'),
         backgroundColor: themeColor(colors, 'rgba(130,184,157,0.08)'),
     },
+    stateIconInProgress: {
+        borderColor: colors.accent,
+        backgroundColor: themeColor(colors, 'rgba(114,188,224,0.12)'),
+    },
     pendingDot: {
         width: 5,
         height: 5,
@@ -1839,6 +1927,13 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         color: themeColor(colors, '#666b74'),
         fontSize: 11,
         fontWeight: '500',
+        marginTop: 5,
+    },
+    inProgressLabel: {
+        color: colors.accent,
+        fontSize: 9,
+        fontWeight: '900',
+        letterSpacing: 0.9,
         marginTop: 5,
     },
     completedText: {
@@ -1866,6 +1961,16 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         fontSize: 11,
         fontWeight: '700',
         letterSpacing: 0.5,
+    },
+    resumeButton: {
+        backgroundColor: colors.accent,
+        shadowColor: colors.accent,
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    resumeButtonText: {
+        color: colors.contrastText,
     },
     doneButton: {
         flexDirection: 'row',
