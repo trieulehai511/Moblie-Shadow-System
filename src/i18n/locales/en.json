@@ -218,9 +218,6 @@
       }
     }
   },
-  "leaderboard": {
-    "title": "LEADERBOARD SCREEN"
-  },
   "exercise": {
     "title": "EXERCISE SCREEN"
   },
@@ -246,6 +243,24 @@
     "loading": "LOADING LEADERBOARD...",
     "loadFailed": "Unable to load leaderboard.",
     "empty": "No ranking data available.",
-    "retry": "TRY AGAIN"
+    "retry": "TRY AGAIN",
+    "searchPlaceholder": "Enter Hunter ID",
+    "searchRequired": "Please enter a Hunter ID.",
+    "hunterNotFound": "This Hunter could not be found.",
+    "search": "Search for Hunter",
+    "openSearch": "Open Hunter search",
+    "closeSearch": "Close search"
+  },
+  "hunterProfile": {
+    "archive": "SYSTEM ARCHIVE",
+    "title": "HUNTER PROFILE",
+    "ageLine": "Awakened Hunter • Age: {{age}}",
+    "streak": "STREAK",
+    "best": "BEST",
+    "rank": "RANK",
+    "combatAttributes": "COMBAT ATTRIBUTES",
+    "shields": "SHIELDS",
+    "notFound": "Hunter profile could not be found.",
+    "back": "GO BACK"
   }
 }

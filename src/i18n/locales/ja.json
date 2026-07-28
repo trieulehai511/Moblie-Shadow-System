@@ -219,7 +219,30 @@
     }
   },
   "leaderboard": {
-    "title": "ランキング"
+    "title": "ランキング",
+    "subtitle": "トップ{{count}}ハンター",
+    "loading": "ランキングを読み込んでいます...",
+    "loadFailed": "ランキングを読み込めません。",
+    "empty": "ランキングデータがありません。",
+    "retry": "再試行",
+    "searchPlaceholder": "ハンターIDを入力",
+    "searchRequired": "ハンターIDを入力してください。",
+    "hunterNotFound": "このハンターは見つかりませんでした。",
+    "search": "ハンターを検索",
+    "openSearch": "ハンター検索を開く",
+    "closeSearch": "検索を閉じる"
+  },
+  "hunterProfile": {
+    "archive": "システムアーカイブ",
+    "title": "ハンタープロフィール",
+    "ageLine": "覚醒ハンター • 年齢: {{age}}",
+    "streak": "連続記録",
+    "best": "最高記録",
+    "rank": "ランク",
+    "combatAttributes": "戦闘能力",
+    "shields": "シールド",
+    "notFound": "ハンタープロフィールが見つかりません。",
+    "back": "戻る"
   },
   "exercise": {
     "title": "エクササイズ"

@@ -216,9 +216,6 @@
       }
     }
   },
-  "leaderboard": {
-    "title": "BẢNG XẾP HẠNG"
-  },
   "exercise": {
     "title": "BÀI TẬP"
   },
@@ -244,6 +241,24 @@
     "loading": "ĐANG TẢI BẢNG XẾP HẠNG...",
     "loadFailed": "Không thể tải bảng xếp hạng.",
     "empty": "Chưa có dữ liệu xếp hạng.",
-    "retry": "THỬ LẠI"
+    "retry": "THỬ LẠI",
+    "searchPlaceholder": "Nhập ID Thợ săn",
+    "searchRequired": "Vui lòng nhập ID Thợ săn.",
+    "hunterNotFound": "Không tìm thấy Thợ săn này.",
+    "search": "Tìm Thợ săn",
+    "openSearch": "Mở tìm kiếm Thợ săn",
+    "closeSearch": "Đóng tìm kiếm"
+  },
+  "hunterProfile": {
+    "archive": "HỒ SƠ HỆ THỐNG",
+    "title": "HỒ SƠ THỢ SĂN",
+    "ageLine": "Thợ săn thức tỉnh • Tuổi: {{age}}",
+    "streak": "CHUỖI NGÀY",
+    "best": "TỐT NHẤT",
+    "rank": "HẠNG",
+    "combatAttributes": "CHỈ SỐ CHIẾN ĐẤU",
+    "shields": "KHIÊN",
+    "notFound": "Không tìm thấy hồ sơ Thợ săn.",
+    "back": "QUAY LẠI"
   }
 }

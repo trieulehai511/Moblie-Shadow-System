@@ -54,7 +54,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
         const hunterCode = searchCode.trim().toUpperCase();
 
         if (!hunterCode) {
-            setSearchError('Vui lòng nhập Hunter ID.');
+            setSearchError(t('leaderboard.searchRequired'));
             return;
         }
 
@@ -75,7 +75,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
         } catch (requestError: any) {
             setSearchError(
                 requestError.response?.data?.message ??
-                'Không tìm thấy Hunter này.'
+                t('leaderboard.hunterNotFound')
             );
         } finally {
             setSearching(false);
@@ -102,13 +102,13 @@ export default function LeaderboardScreen({ navigation, }: any) {
 
                 setError(
                     requestError.response?.data?.message ??
-                    'Không thể tải bảng xếp hạng.'
+                    t('leaderboard.loadFailed')
                 );
             } finally {
                 setLoading(false);
                 setRefreshing(false);
             }
-        }, []
+        }, [t]
     );
     useEffect(() => {
         void fetchLeaderboard();
@@ -135,11 +135,13 @@ export default function LeaderboardScreen({ navigation, }: any) {
     const renderHunter = ({ item }: { item: LeaderboardHunter }) => {
         const positionColor = getPositionColor(item.position);
         const positionIcon = getPositionIcon(item.position);
+        const isTopThree = item.position <= 3;
         return (
             <TouchableOpacity
                 style={[
                     styles.hunterCard,
-                    item.position <= 3 && styles.topHunterCard,
+                    isTopThree && styles.topHunterCard,
+                    item.position === 1 && styles.firstHunterCard,
                 ]}
                 activeOpacity={0.75}
                 onPress={() =>
@@ -179,6 +181,21 @@ export default function LeaderboardScreen({ navigation, }: any) {
                             color={colors.mutedText}
                         />
                     )}
+                    <View
+                        style={[
+                            styles.rankBadge,
+                            { borderColor: positionColor },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.rankBadgeText,
+                                { color: positionColor },
+                            ]}
+                        >
+                            {item.rankTier.trim().toUpperCase()[0] || 'E'}
+                        </Text>
+                    </View>
                 </View>
 
                 <View style={styles.hunterInfo}>
@@ -265,7 +282,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
                                     setSearchCode(value);
                                     setSearchError(null);
                                 }}
-                                placeholder="Nhập Hunter ID"
+                                placeholder={t('leaderboard.searchPlaceholder')}
                                 placeholderTextColor={colors.mutedText}
                                 autoCapitalize="characters"
                                 autoCorrect={false}
@@ -279,7 +296,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
                             onPress={() => void handleSearch()}
                             disabled={searching}
                             accessibilityRole="button"
-                            accessibilityLabel="Tìm Hunter"
+                            accessibilityLabel={t('leaderboard.search')}
                         >
                             {searching ? (
                                 <ActivityIndicator size="small" color={colors.accent} />
@@ -296,7 +313,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
                             onPress={closeSearch}
                             disabled={searching}
                             accessibilityRole="button"
-                            accessibilityLabel="Đóng tìm kiếm"
+                            accessibilityLabel={t('leaderboard.closeSearch')}
                         >
                             <MaterialCommunityIcons
                                 name="close"
@@ -319,7 +336,7 @@ export default function LeaderboardScreen({ navigation, }: any) {
                             style={styles.headerIconButton}
                             onPress={openSearch}
                             accessibilityRole="button"
-                            accessibilityLabel="Mở tìm kiếm Hunter"
+                            accessibilityLabel={t('leaderboard.openSearch')}
                         >
                             <MaterialCommunityIcons
                                 name="magnify"
@@ -425,6 +442,7 @@ const createStyles = (colors: ThemeColors) =>
 
         hunterCard: {
             minHeight: 88,
+            overflow: 'hidden',
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: 12,
@@ -436,11 +454,12 @@ const createStyles = (colors: ThemeColors) =>
         },
 
         topHunterCard: {
-            borderColor: themeColor(
-                colors,
-                'rgba(114, 188, 224, 0.45)'
-            ),
+            borderColor: themeColor(colors, 'rgba(114,188,224,0.25)'),
             backgroundColor: colors.elevated,
+        },
+
+        firstHunterCard: {
+            borderColor: themeColor(colors, 'rgba(250,204,21,0.34)'),
         },
 
         separator: {
@@ -464,7 +483,6 @@ const createStyles = (colors: ThemeColors) =>
             height: 54,
             justifyContent: 'center',
             alignItems: 'center',
-            overflow: 'hidden',
             borderWidth: 2,
             borderColor: colors.border,
             borderRadius: 27,
@@ -474,6 +492,25 @@ const createStyles = (colors: ThemeColors) =>
         avatar: {
             width: '100%',
             height: '100%',
+            borderRadius: 27,
+        },
+
+        rankBadge: {
+            position: 'absolute',
+            right: -3,
+            bottom: -3,
+            width: 23,
+            height: 23,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderRadius: 12,
+            backgroundColor: colors.surface,
+        },
+
+        rankBadgeText: {
+            fontSize: 10,
+            fontWeight: '900',
         },
 
         hunterInfo: {
