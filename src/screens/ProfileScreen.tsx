@@ -4,12 +4,15 @@ import {
     Alert,
     Animated,
     Image,
+    KeyboardAvoidingView,
     Modal,
+    Platform,
     Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -17,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
@@ -39,6 +43,7 @@ import {
     toAppLanguage,
     updateMySettings,
 } from '../services/settingService';
+import { updateMyProfile } from '../services/profileService';
 import {
     ThemeColors,
     themeColor,
@@ -243,7 +248,7 @@ export default function ProfileScreen({ navigation }: any) {
     const styles = useMemo(() => createStyles(colors), [colors]);
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [selectedSettingsSection, setSelectedSettingsSection] = useState<
-        'language' | 'theme' | 'region' | null
+        'profile' | 'language' | 'theme' | 'region' | null
     >(null);
     const [settings, setSettings] = useState<UserSetting | null>(null);
     const [settingsLoading, setSettingsLoading] = useState(false);
@@ -251,6 +256,11 @@ export default function ProfileScreen({ navigation }: any) {
     const [profile, setProfile] = useState<HunterProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [editFullName, setEditFullName] = useState('');
+    const [editAge, setEditAge] = useState('');
+    const [editAvatar, setEditAvatar] =
+        useState<ImagePicker.ImagePickerAsset | null>(null);
+    const [profileSaving, setProfileSaving] = useState(false);
     const [attributeReward, setAttributeReward] = useState<
         Partial<Record<'strength' | 'agility' | 'vitality', number>> | null
     >(null);
@@ -453,6 +463,74 @@ export default function ProfileScreen({ navigation }: any) {
             );
         } finally {
             setSettingsSaving(false);
+        }
+    };
+
+    const openProfileEditor = () => {
+        setEditFullName(profile?.fullName ?? '');
+        setEditAge(profile?.age ? String(profile.age) : '');
+        setEditAvatar(null);
+        setSelectedSettingsSection('profile');
+    };
+
+    const pickAvatar = async () => {
+        const permission =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permission.granted) {
+            Alert.alert(
+                t('common.notice'),
+                t('profile.photoPermissionRequired')
+            );
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setEditAvatar(result.assets[0]);
+        }
+    };
+
+    const saveProfile = async () => {
+        const fullName = editFullName.trim();
+        const age = Number(editAge);
+
+        if (!fullName) {
+            Alert.alert(t('common.notice'), t('profile.fullNameRequired'));
+            return;
+        }
+
+        if (!Number.isInteger(age) || age < 16) {
+            Alert.alert(t('common.notice'), t('profile.minimumAge'));
+            return;
+        }
+
+        setProfileSaving(true);
+        try {
+            const updatedProfile = await updateMyProfile(
+                {
+                    fullName,
+                    age,
+                    avatar: editAvatar ? undefined : profile?.avatar,
+                },
+                editAvatar ?? undefined
+            );
+            setProfile(updatedProfile);
+            setSelectedSettingsSection(null);
+            Alert.alert(t('common.success'), t('profile.updateSuccess'));
+        } catch (error: any) {
+            Alert.alert(
+                t('common.error'),
+                error.response?.data?.message || t('profile.updateFailed')
+            );
+        } finally {
+            setProfileSaving(false);
         }
     };
     const openAttributeInfo = (
@@ -806,7 +884,9 @@ export default function ProfileScreen({ navigation }: any) {
                                 style={[styles.settingsTitle, { color: colors.text }]}
                             >
                                 {selectedSettingsSection
-                                    ? t(`settings.${selectedSettingsSection}`)
+                                    ? selectedSettingsSection === 'profile'
+                                        ? t('profile.edit')
+                                        : t(`settings.${selectedSettingsSection}`)
                                     : t('settings.title')}
                             </Text>
 
@@ -823,7 +903,103 @@ export default function ProfileScreen({ navigation }: any) {
                             </TouchableOpacity>
                         </View>
 
-                        {settingsLoading || !settings ? (
+                        {selectedSettingsSection === 'profile' ? (
+                            <KeyboardAvoidingView
+                                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                            >
+                                <ScrollView
+                                    showsVerticalScrollIndicator={false}
+                                    keyboardShouldPersistTaps="handled"
+                                >
+                                    <View style={styles.editProfileForm}>
+                                        <TouchableOpacity
+                                            style={styles.editAvatarButton}
+                                            onPress={pickAvatar}
+                                            disabled={profileSaving}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('profile.changeAvatar')}
+                                        >
+                                            {editAvatar?.uri || profile?.avatar ? (
+                                                <Image
+                                                    source={{
+                                                        uri:
+                                                            editAvatar?.uri ??
+                                                            profile?.avatar,
+                                                    }}
+                                                    style={styles.editAvatar}
+                                                />
+                                            ) : (
+                                                <MaterialCommunityIcons
+                                                    name="shield-account"
+                                                    size={58}
+                                                    color={colors.text}
+                                                />
+                                            )}
+                                            <View style={styles.editAvatarBadge}>
+                                                <Feather
+                                                    name="camera"
+                                                    size={16}
+                                                    color="#ffffff"
+                                                />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <Text style={styles.editAvatarHint}>
+                                            {t('profile.changeAvatar')}
+                                        </Text>
+
+                                        <Text style={styles.editLabel}>
+                                            {t('register.fullName')}
+                                        </Text>
+                                        <TextInput
+                                            style={styles.editInput}
+                                            value={editFullName}
+                                            onChangeText={setEditFullName}
+                                            editable={!profileSaving}
+                                            maxLength={100}
+                                            placeholder={t('register.fullNamePlaceholder')}
+                                            placeholderTextColor={colors.mutedText}
+                                            returnKeyType="next"
+                                        />
+
+                                        <Text style={styles.editLabel}>
+                                            {t('profile.age')}
+                                        </Text>
+                                        <TextInput
+                                            style={styles.editInput}
+                                            value={editAge}
+                                            onChangeText={value =>
+                                                setEditAge(
+                                                    value.replace(/[^0-9]/g, '')
+                                                )
+                                            }
+                                            editable={!profileSaving}
+                                            keyboardType="number-pad"
+                                            maxLength={3}
+                                            placeholder={t('register.agePlaceholder')}
+                                            placeholderTextColor={colors.mutedText}
+                                        />
+
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.saveProfileButton,
+                                                profileSaving &&
+                                                    styles.saveProfileButtonDisabled,
+                                            ]}
+                                            onPress={saveProfile}
+                                            disabled={profileSaving}
+                                        >
+                                            {profileSaving ? (
+                                                <ActivityIndicator color="#081018" />
+                                            ) : (
+                                                <Text style={styles.saveProfileButtonText}>
+                                                    {t('profile.saveChanges')}
+                                                </Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                </ScrollView>
+                            </KeyboardAvoidingView>
+                        ) : settingsLoading || !settings ? (
                             <View style={styles.settingsLoading}>
                                 <ActivityIndicator size="large" color={themeColor(colors, '#72bce0')} />
                             </View>
@@ -1001,12 +1177,7 @@ export default function ProfileScreen({ navigation }: any) {
                                                     borderColor: colors.border,
                                                 },
                                             ]}
-                                            onPress={() =>
-                                                Alert.alert(
-                                                    t('profile.edit'),
-                                                    t('common.featureComingSoon')
-                                                )
-                                            }
+                                            onPress={openProfileEditor}
                                         >
                                             <View style={styles.settingsMenuItemStart}>
                                                 <Feather
@@ -1763,6 +1934,91 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
 
     settingsMenu: {
         gap: 10,
+    },
+
+    editProfileForm: {
+        paddingBottom: 12,
+    },
+
+    editAvatarButton: {
+        width: 112,
+        height: 112,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 56,
+        borderWidth: 3,
+        borderColor: colors.accent,
+        backgroundColor: colors.elevated,
+    },
+
+    editAvatar: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 56,
+    },
+
+    editAvatarBadge: {
+        position: 'absolute',
+        right: 0,
+        bottom: 3,
+        width: 34,
+        height: 34,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 17,
+        borderWidth: 2,
+        borderColor: colors.surface,
+        backgroundColor: colors.accent,
+    },
+
+    editAvatarHint: {
+        marginTop: 10,
+        marginBottom: 24,
+        color: colors.accent,
+        fontSize: 13,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+
+    editLabel: {
+        marginBottom: 8,
+        color: colors.mutedText,
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.8,
+        textTransform: 'uppercase',
+    },
+
+    editInput: {
+        minHeight: 52,
+        marginBottom: 18,
+        paddingHorizontal: 15,
+        color: colors.text,
+        fontSize: 16,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 11,
+        backgroundColor: colors.elevated,
+    },
+
+    saveProfileButton: {
+        height: 52,
+        marginTop: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 11,
+        backgroundColor: colors.accent,
+    },
+
+    saveProfileButtonDisabled: {
+        opacity: 0.6,
+    },
+
+    saveProfileButtonText: {
+        color: '#081018',
+        fontSize: 15,
+        fontWeight: '800',
     },
 
     settingsMenuItem: {
