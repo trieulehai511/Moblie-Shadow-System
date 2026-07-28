@@ -53,6 +53,7 @@ type CompletionReward = {
 };
 
 const SESSION_PREFIX = 'shadow_quest_session_';
+const ATTRIBUTE_GAINS_PREFIX = 'shadow_quest_attribute_gains_';
 const PING_INTERVAL_SECONDS = 10;
 const ATTRIBUTE_NAMES: AttributeName[] = ['strength', 'agility', 'vitality'];
 const ATTRIBUTE_LABELS: Record<AttributeName, string> = {
@@ -96,6 +97,34 @@ const getAttributes = (data: any): AttributeValues => {
             .map(attribute => [attribute, profile[attribute]])
     ) as AttributeValues;
 };
+
+const getAttributeGains = (
+    before: AttributeValues,
+    after: AttributeValues
+): AttributeValues =>
+    Object.fromEntries(
+        ATTRIBUTE_NAMES
+            .filter(
+                attribute =>
+                    typeof before[attribute] === 'number' &&
+                    typeof after[attribute] === 'number'
+            )
+            .map(attribute => [
+                attribute,
+                Math.max(0, after[attribute]! - before[attribute]!),
+            ])
+    ) as AttributeValues;
+
+const addAttributeGains = (
+    current: AttributeValues,
+    added: AttributeValues
+): AttributeValues =>
+    Object.fromEntries(
+        ATTRIBUTE_NAMES.map(attribute => [
+            attribute,
+            (current[attribute] ?? 0) + (added[attribute] ?? 0),
+        ])
+    ) as AttributeValues;
 
 export default function DailyQuestScreen() {
     const { t, i18n } = useTranslation();
@@ -609,21 +638,15 @@ export default function DailyQuestScreen() {
         setErrorMessage(null);
         try {
             const completedItemId = workoutItem.id;
+            const isMainQuestItem = workoutItem.type !== 'BONUS';
             const mainItemsBefore =
                 questData?.questItems.filter(item => item.type !== 'BONUS') ?? [];
             const wasMainQuestCompleted =
                 mainItemsBefore.length > 0 &&
                 mainItemsBefore.every(item => item.completed);
-            const isFinalMainQuestItem = Boolean(
-                questData &&
-                !wasMainQuestCompleted &&
-                questData.questItems
-                    .filter(item => item.type !== 'BONUS')
-                    .every(item => item.id === completedItemId || item.completed)
-            );
             let attributesBefore: AttributeValues = {};
 
-            if (isFinalMainQuestItem) {
+            if (isMainQuestItem) {
                 try {
                     const profileBefore = await api.get('/auth/me');
                     attributesBefore = getAttributes(profileBefore.data);
@@ -659,39 +682,52 @@ export default function DailyQuestScreen() {
                 questJustCleared,
             });
 
-            if (questJustCleared) {
-                let attributeGains: AttributeValues = {};
+            let accumulatedAttributeGains: AttributeValues = {};
+
+            if (isMainQuestItem) {
+                const storageKey = `${ATTRIBUTE_GAINS_PREFIX}${quest.id}`;
+
+                try {
+                    const storedAttributeGains =
+                        await AsyncStorage.getItem(storageKey);
+                    accumulatedAttributeGains = storedAttributeGains
+                        ? (JSON.parse(storedAttributeGains) as AttributeValues)
+                        : {};
+                } catch (storageError) {
+                    console.log('Read accumulated attribute gains error:', storageError);
+                }
 
                 try {
                     const profileAfter = await api.get('/auth/me');
                     const attributesAfter = getAttributes(profileAfter.data);
-                    attributeGains = Object.fromEntries(
-                        ATTRIBUTE_NAMES
-                            .filter(
-                                attribute =>
-                                    typeof attributesBefore[attribute] === 'number' &&
-                                    typeof attributesAfter[attribute] === 'number'
-                            )
-                            .map(attribute => [
-                                attribute,
-                                Math.max(
-                                    0,
-                                    attributesAfter[attribute]! -
-                                    attributesBefore[attribute]!
-                                ),
-                            ])
-                    ) as AttributeValues;
+                    const currentAttributeGains = getAttributeGains(
+                        attributesBefore,
+                        attributesAfter
+                    );
+                    accumulatedAttributeGains = addAttributeGains(
+                        accumulatedAttributeGains,
+                        currentAttributeGains
+                    );
+                    await AsyncStorage.setItem(
+                        storageKey,
+                        JSON.stringify(accumulatedAttributeGains)
+                    );
                 } catch (profileError) {
-                    console.log('Read attributes after completion error:', profileError);
+                    console.log('Track attribute gains error:', profileError);
                 }
+            }
 
+            if (questJustCleared) {
                 setCompletionReward({
                     message:
                         t(COMPLETION_MESSAGE_KEYS[
                             Math.floor(Math.random() * COMPLETION_MESSAGE_KEYS.length)
                         ]),
-                    attributeGains,
+                    attributeGains: accumulatedAttributeGains,
                 });
+                await AsyncStorage.removeItem(
+                    `${ATTRIBUTE_GAINS_PREFIX}${quest.id}`
+                );
             } else {
                 Alert.alert(t('dailyQuest.exerciseComplete'), t('dailyQuest.progressRecorded'));
             }
