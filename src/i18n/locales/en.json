@@ -117,6 +117,8 @@
     "savingWorkout": "SAVING WORKOUT...",
     "autoSync": "Progress will sync automatically.",
     "pause": "Pause",
+    "getReady": "GET READY",
+    "go": "GO",
     "recording": "RECORDING...",
     "completeAndClaim": "COMPLETE & CLAIM REWARD",
     "completionMessages": {

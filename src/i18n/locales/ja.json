@@ -117,6 +117,8 @@
     "savingWorkout": "ワークアウトを保存中...",
     "autoSync": "進捗は自動的に同期されます。",
     "pause": "一時停止",
+    "getReady": "準備",
+    "go": "スタート",
     "recording": "記録中...",
     "completeAndClaim": "完了して報酬を獲得",
     "completionMessages": {

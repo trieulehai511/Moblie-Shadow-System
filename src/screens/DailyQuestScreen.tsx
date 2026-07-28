@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { jwtDecode } from 'jwt-decode';
@@ -128,7 +129,7 @@ const addAttributeGains = (
 
 export default function DailyQuestScreen() {
     const { t, i18n } = useTranslation();
-    const { colors } = useAppTheme();
+    const { colors, mode } = useAppTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
     const navigation = useNavigation<any>();
     const [questData, setQuestData] = useState<DailyQuestResponse | null>(null);
@@ -141,6 +142,7 @@ export default function DailyQuestScreen() {
     const [workoutItem, setWorkoutItem] = useState<QuestItem | null>(null);
     const [session, setSession] = useState<ActiveQuestSession | null>(null);
     const [selectedPace, setSelectedPace] = useState<TrainingPace>('AVERAGE');
+    const [preparationStep, setPreparationStep] = useState<number | 'go' | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [completionReward, setCompletionReward] =
         useState<CompletionReward | null>(null);
@@ -152,6 +154,15 @@ export default function DailyQuestScreen() {
     const initialOrderRef = useRef<string[]>([]);
     const rewardOpacity = useRef(new Animated.Value(0)).current;
     const rewardScale = useRef(new Animated.Value(0.94)).current;
+    const preparationTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    const cancelPreparation = useCallback(() => {
+        preparationTimersRef.current.forEach(clearTimeout);
+        preparationTimersRef.current = [];
+        setPreparationStep(null);
+    }, []);
+
+    useEffect(() => cancelPreparation, [cancelPreparation]);
 
     useEffect(() => {
         if (!completionReward) return;
@@ -208,6 +219,41 @@ export default function DailyQuestScreen() {
         );
     }, []);
 
+    const beginPreparation = useCallback(
+        (targetSession: ActiveQuestSession) => {
+            cancelPreparation();
+
+            const paused = { ...targetSession, isPaused: true };
+            sessionRef.current = paused;
+            setSession(paused);
+            saveSession(paused);
+            setPreparationStep(3);
+
+            const show = (step: number | 'go', delay: number) => {
+                preparationTimersRef.current.push(
+                    setTimeout(() => setPreparationStep(step), delay)
+                );
+            };
+            show(2, 1000);
+            show(1, 2000);
+            show('go', 3000);
+            preparationTimersRef.current.push(
+                setTimeout(() => {
+                    const current = sessionRef.current;
+                    if (current && current.timeLeft > 0) {
+                        const running = { ...current, isPaused: false };
+                        sessionRef.current = running;
+                        setSession(running);
+                        saveSession(running);
+                    }
+                    setPreparationStep(null);
+                    preparationTimersRef.current = [];
+                }, 3600)
+            );
+        },
+        [cancelPreparation, saveSession]
+    );
+
     const removeSession = useCallback((itemId: string) => {
         void AsyncStorage.removeItem(`${SESSION_PREFIX}${itemId}`);
     }, []);
@@ -257,11 +303,12 @@ export default function DailyQuestScreen() {
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextState => {
             if (nextState !== 'active') {
+                cancelPreparation();
                 pauseCurrentSession();
             }
         });
         return () => subscription.remove();
-    }, [pauseCurrentSession]);
+    }, [cancelPreparation, pauseCurrentSession]);
 
     const syncProgress = useCallback(
         async (current: ActiveQuestSession): Promise<number | null> => {
@@ -523,6 +570,7 @@ export default function DailyQuestScreen() {
     };
 
     const closeWorkout = () => {
+        cancelPreparation();
         pauseCurrentSession();
         setWorkoutItem(null);
         setErrorMessage(null);
@@ -552,10 +600,9 @@ export default function DailyQuestScreen() {
                 currentSet: 1,
                 phase: 'training',
                 timeLeft: timing.secondsPerSet,
-                isPaused: false,
+                isPaused: true,
             };
-            setSession(nextSession);
-            saveSession(nextSession);
+            beginPreparation(nextSession);
         } catch (error: any) {
             setErrorMessage(
                 error.response?.data?.message ||
@@ -600,10 +647,7 @@ export default function DailyQuestScreen() {
             if (!shouldResume || !current || current.timeLeft === 0) return;
 
             shouldResume = false;
-            const resumed = { ...current, isPaused: false };
-            sessionRef.current = resumed;
-            setSession(resumed);
-            saveSession(resumed);
+            beginPreparation(current);
         };
 
         Alert.alert(
@@ -1368,10 +1412,15 @@ export default function DailyQuestScreen() {
                                                 <TouchableOpacity
                                                     style={styles.controlButton}
                                                     onPress={() => {
+                                                        if (session.isPaused) {
+                                                            beginPreparation(session);
+                                                            return;
+                                                        }
                                                         const updated = {
                                                             ...session,
-                                                            isPaused: !session.isPaused,
+                                                            isPaused: true,
                                                         };
+                                                        sessionRef.current = updated;
                                                         setSession(updated);
                                                         saveSession(updated);
                                                     }}
@@ -1459,6 +1508,30 @@ export default function DailyQuestScreen() {
                             </View>
                         </ScrollView>
                     </SafeAreaView>
+                    {preparationStep !== null ? (
+                        <BlurView
+                            intensity={42}
+                            tint={mode === 'dark' ? 'dark' : 'light'}
+                            style={styles.preparationOverlay}
+                        >
+                            <View style={styles.preparationContent}>
+                                <Text style={styles.preparationLabel}>
+                                    {t('dailyQuest.getReady')}
+                                </Text>
+                                <Text
+                                    style={[
+                                        styles.preparationValue,
+                                        preparationStep === 'go' &&
+                                            styles.preparationGoValue,
+                                    ]}
+                                >
+                                    {preparationStep === 'go'
+                                        ? t('dailyQuest.go')
+                                        : preparationStep}
+                                </Text>
+                            </View>
+                        </BlurView>
+                    ) : null}
                 </View>
             </Modal>
         </SafeAreaView>
@@ -2092,6 +2165,42 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         fontWeight: '700',
     },
     timerSection: { alignItems: 'stretch' },
+    preparationOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 10,
+        elevation: 20,
+        backgroundColor:
+            colors.background === '#f4f7fa'
+                ? 'rgba(244,247,250,0.62)'
+                : 'rgba(8,10,15,0.58)',
+    },
+    preparationContent: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    preparationLabel: {
+        color: colors.mutedText,
+        fontSize: 11,
+        fontWeight: '800',
+        letterSpacing: 2,
+        marginBottom: 12,
+    },
+    preparationValue: {
+        color: colors.text,
+        fontSize: 112,
+        lineHeight: 124,
+        fontWeight: '800',
+        letterSpacing: -2,
+        textAlign: 'center',
+        width: '100%',
+    },
+    preparationGoValue: {
+        fontSize: 42,
+        lineHeight: 52,
+        letterSpacing: 3,
+        paddingHorizontal: 24,
+    },
     phaseRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
