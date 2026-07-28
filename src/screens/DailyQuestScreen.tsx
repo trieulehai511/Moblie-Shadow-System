@@ -545,25 +545,6 @@ export default function DailyQuestScreen() {
             }
         }
 
-        if (serverRequired > 0 && serverAccumulated >= serverRequired) {
-            const completedSession: ActiveQuestSession = {
-                itemId: item.id,
-                exerciseName: item.exerciseName,
-                pace: 'AVERAGE',
-                secondsPerSet: 0,
-                restSeconds: 0,
-                totalRequiredSeconds: serverRequired,
-                accumulatedSeconds: serverAccumulated,
-                currentSet: item.targetSets,
-                phase: 'training',
-                timeLeft: 0,
-                isPaused: true,
-            };
-            setSession(completedSession);
-            saveSession(completedSession);
-            return;
-        }
-
         if (item.status === 'IN_PROGRESS' || serverAccumulated > 0) {
             const secondsPerSet = Math.max(1, item.targetReps * 3);
             const restSeconds = 60;
