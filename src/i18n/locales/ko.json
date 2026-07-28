@@ -245,7 +245,76 @@
     "back": "돌아가기"
   },
   "exercise": {
-    "title": "운동"
+    "title": "운동 라이브러리",
+    "systemDatabase": "시스템 데이터베이스 · 온라인",
+    "subtitle": "일일 퀘스트 생성에 사용할 운동을 선택하세요.",
+    "loading": "운동 데이터를 불러오는 중...",
+    "loadFailed": "운동 라이브러리를 동기화할 수 없습니다.",
+    "syncError": "동기화 실패",
+    "selectionMode": "선택 모드",
+    "mode": {
+      "all": "모든 운동",
+      "custom": "사용자 지정"
+    },
+    "modeDescription": {
+      "all": "시스템이 사용 가능한 모든 운동을 자동으로 순환합니다.",
+      "custom": "각 그룹에서 6개 이상의 운동을 선택해 균형 잡힌 목록을 구성하세요."
+    },
+    "configuration": "설정 상태",
+    "groupsRemaining": "{{count}}개 그룹을 더 채워야 합니다",
+    "ready": "설정 완료",
+    "selected": "선택됨",
+    "categories": {
+      "CHEST": "상체 / 밀기",
+      "CALISTHENICS": "맨몸 운동",
+      "LEGS": "하체 / 다리",
+      "LOWER": "하체 보조 근육",
+      "CARDIO": "유산소 / 지구력"
+    },
+    "available": "{{count}}개 운동",
+    "sets": "세트",
+    "reps": "회",
+    "empty": "이 그룹에는 사용 가능한 운동이 없습니다.",
+    "allModeTitle": "전체 운동 순환이 활성화되었습니다",
+    "allModeText": "다양한 퀘스트를 위해 모든 운동이 향후 일일 퀘스트에 등장할 수 있습니다.",
+    "currentMode": "현재 모드",
+    "save": "설정 저장",
+    "saveFailed": "운동 선택을 저장할 수 없습니다.",
+    "rejectedTitle": "설정이 완료되지 않았습니다",
+    "minimumWarning": "각 그룹에서 최소 {{count}}개를 선택하세요. 미달 그룹: {{categories}}.",
+    "saved": {
+      "all": "시스템이 사용 가능한 모든 운동을 사용합니다.",
+      "custom": "사용자 지정 운동 목록을 저장했습니다."
+    },
+    "description": "설명",
+    "noDescription": "이 운동에 대한 설명이 없습니다.",
+    "tutorial": "튜토리얼 보기",
+    "create": {
+      "button": "추가",
+      "title": "운동 만들기",
+      "submit": "운동 만들기",
+      "addImage": "운동 이미지 추가",
+      "imageHint": "JPG 또는 PNG · 선택 사항",
+      "change": "변경",
+      "photoPermission": "이미지를 선택하려면 사진 라이브러리 접근 권한이 필요합니다.",
+      "name": "운동 이름",
+      "namePlaceholder": "예: 인클라인 푸시업",
+      "category": "근육 그룹",
+      "targetStat": "목표 능력치",
+      "baseSets": "기본 세트",
+      "baseReps": "기본 횟수",
+      "description": "설명",
+      "descriptionPlaceholder": "동작과 올바른 자세를 설명하세요...",
+      "safetyTips": "안전 주의 사항",
+      "safetyTipsPlaceholder": "중요한 안전 지침을 입력하세요...",
+      "tutorialVideo": "튜토리얼 영상 URL",
+      "tutorialVideoPlaceholder": "https://...",
+      "missingTitle": "운동 정보를 확인하세요",
+      "nameRequired": "운동 이름을 입력해야 합니다.",
+      "invalidTargets": "세트와 횟수는 1 이상의 정수여야 합니다.",
+      "success": "\"{{name}}\" 운동을 만들고 사용자 지정 목록에 추가했습니다.",
+      "failed": "운동을 만들 수 없습니다."
+    }
   },
   "main": {
     "welcome": "메인 앱에 오신 것을 환영합니다!",

@@ -245,7 +245,76 @@
     "back": "戻る"
   },
   "exercise": {
-    "title": "エクササイズ"
+    "title": "エクササイズ一覧",
+    "systemDatabase": "システムデータベース · オンライン",
+    "subtitle": "デイリークエストの生成に使用するエクササイズを選択します。",
+    "loading": "エクササイズデータを取得中...",
+    "loadFailed": "エクササイズ一覧を同期できません。",
+    "syncError": "同期に失敗しました",
+    "selectionMode": "選択モード",
+    "mode": {
+      "all": "すべての種目",
+      "custom": "カスタム"
+    },
+    "modeDescription": {
+      "all": "システムが利用可能なすべての種目を自動でローテーションします。",
+      "custom": "各グループから6種目以上を選び、バランスの取れた構成を作成します。"
+    },
+    "configuration": "設定状況",
+    "groupsRemaining": "あと{{count}}グループの選択が必要です",
+    "ready": "設定完了",
+    "selected": "選択済み",
+    "categories": {
+      "CHEST": "上半身 / プッシュ",
+      "CALISTHENICS": "自重トレーニング",
+      "LEGS": "下半身 / 脚",
+      "LOWER": "下半身補助",
+      "CARDIO": "有酸素 / 持久力"
+    },
+    "available": "{{count}}種目",
+    "sets": "セット",
+    "reps": "回",
+    "empty": "このグループには利用可能な種目がありません。",
+    "allModeTitle": "全種目ローテーションが有効です",
+    "allModeText": "バリエーションを最大限にするため、すべての種目が今後のデイリークエストに登場します。",
+    "currentMode": "現在のモード",
+    "save": "設定を保存",
+    "saveFailed": "エクササイズの選択を保存できません。",
+    "rejectedTitle": "設定が完了していません",
+    "minimumWarning": "各グループから{{count}}種目以上を選択してください。未達成：{{categories}}。",
+    "saved": {
+      "all": "システムは利用可能なすべてのエクササイズを使用します。",
+      "custom": "カスタムエクササイズを保存しました。"
+    },
+    "description": "説明",
+    "noDescription": "このエクササイズには説明がありません。",
+    "tutorial": "チュートリアルを見る",
+    "create": {
+      "button": "追加",
+      "title": "エクササイズを作成",
+      "submit": "エクササイズを作成",
+      "addImage": "イメージ画像を追加",
+      "imageHint": "JPGまたはPNG · 任意",
+      "change": "変更",
+      "photoPermission": "画像を選択するには、写真ライブラリへのアクセス許可が必要です。",
+      "name": "エクササイズ名",
+      "namePlaceholder": "例：インクライン・プッシュアップ",
+      "category": "筋肉グループ",
+      "targetStat": "対象能力値",
+      "baseSets": "基本セット数",
+      "baseReps": "基本回数",
+      "description": "説明",
+      "descriptionPlaceholder": "動作と正しいフォームを入力してください...",
+      "safetyTips": "安全上の注意",
+      "safetyTipsPlaceholder": "重要な安全上の注意を入力してください...",
+      "tutorialVideo": "チュートリアル動画URL",
+      "tutorialVideoPlaceholder": "https://...",
+      "missingTitle": "入力内容を確認してください",
+      "nameRequired": "エクササイズ名を入力してください。",
+      "invalidTargets": "セット数と回数には1以上の整数を入力してください。",
+      "success": "「{{name}}」を作成し、カスタム一覧に追加しました。",
+      "failed": "エクササイズを作成できません。"
+    }
   },
   "main": {
     "welcome": "メインアプリへようこそ！",

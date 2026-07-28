@@ -28,7 +28,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Cho phép Shadow System truy cập ảnh để cập nhật ảnh đại diện.",
+          "photosPermission": "Cho phép Shadow System truy cập ảnh để cập nhật ảnh đại diện và ảnh minh họa bài tập.",
           "cameraPermission": false,
           "microphonePermission": false
         }

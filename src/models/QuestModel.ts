@@ -27,6 +27,21 @@ export interface DailyQuestResponse {
     questItems: QuestItem[];
 }
 
+export interface Exercise {
+    id: string;
+    name: string;
+    category: string;
+    targetStat: string;
+    baseSets: number;
+    baseReps: number;
+    description?: string;
+    tutorialVideoUrl?: string;
+    imageUrl?: string;
+    safetyTips?: string;
+    isSystem: boolean;
+    hunterId?: string;
+}
+
 export type TrainingPace = 'STRONG' | 'AVERAGE' | 'WEAK';
 
 export interface ActiveQuestSession {
