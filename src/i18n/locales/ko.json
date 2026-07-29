@@ -118,6 +118,8 @@
     "savingWorkout": "운동 저장 중...",
     "autoSync": "진행 상황은 자동으로 동기화됩니다.",
     "pause": "일시 정지",
+    "pauseFailed": "시스템에서 운동을 일시 정지할 수 없습니다.",
+    "resumeFailed": "운동을 계속할 수 없습니다.",
     "getReady": "준비",
     "go": "시작",
     "recording": "기록 중...",

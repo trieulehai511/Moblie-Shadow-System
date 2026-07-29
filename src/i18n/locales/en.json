@@ -118,6 +118,8 @@
     "savingWorkout": "SAVING WORKOUT...",
     "autoSync": "Progress will sync automatically.",
     "pause": "Pause",
+    "pauseFailed": "Unable to pause this exercise on the System.",
+    "resumeFailed": "Unable to resume this exercise.",
     "getReady": "GET READY",
     "go": "GO",
     "recording": "RECORDING...",

@@ -116,6 +116,8 @@
     "savingWorkout": "ĐANG LƯU BÀI TẬP...",
     "autoSync": "Tiến độ sẽ tự động đồng bộ.",
     "pause": "Tạm dừng",
+    "pauseFailed": "Không thể tạm dừng bài tập trên Hệ thống.",
+    "resumeFailed": "Không thể tiếp tục bài tập.",
     "getReady": "CHUẨN BỊ",
     "go": "BẮT ĐẦU",
     "recording": "ĐANG GHI NHẬN...",

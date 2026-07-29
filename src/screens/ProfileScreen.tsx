@@ -370,7 +370,10 @@ export default function ProfileScreen({ navigation }: any) {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await api.post('/auth/logout');
+                            const token = await AsyncStorage.getItem('token');
+                            if (token) {
+                                await api.post('/auth/logout', { token });
+                            }
                         } catch (error) {
                             console.log('Logout error:', error);
                         } finally {

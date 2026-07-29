@@ -118,6 +118,8 @@
     "savingWorkout": "ワークアウトを保存中...",
     "autoSync": "進捗は自動的に同期されます。",
     "pause": "一時停止",
+    "pauseFailed": "システム上でエクササイズを一時停止できません。",
+    "resumeFailed": "エクササイズを再開できません。",
     "getReady": "準備",
     "go": "スタート",
     "recording": "記録中...",

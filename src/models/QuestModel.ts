@@ -7,7 +7,7 @@ export interface QuestItem {
     targetStat: string;
     completed: boolean;
     type?: 'MAIN' | 'BONUS';
-    status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+    status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
     description?: string;
     tutorialVideoUrl?: string;
     imageUrl?: string;

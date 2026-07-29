@@ -163,6 +163,7 @@ export default function DailyQuestScreen() {
     const workoutItemRef = useRef<QuestItem | null>(null);
     const pingTickRef = useRef(0);
     const pingInFlightRef = useRef(false);
+    const pauseRequestRef = useRef<Promise<unknown> | null>(null);
     const initialOrderRef = useRef<string[]>([]);
     const rewardOpacity = useRef(new Animated.Value(0)).current;
     const rewardScale = useRef(new Animated.Value(0.94)).current;
@@ -232,7 +233,7 @@ export default function DailyQuestScreen() {
     }, []);
 
     const beginPreparation = useCallback(
-        (targetSession: ActiveQuestSession) => {
+        (targetSession: ActiveQuestSession, resumeOnServer = false) => {
             cancelPreparation();
 
             const paused = { ...targetSession, isPaused: true };
@@ -250,20 +251,63 @@ export default function DailyQuestScreen() {
             show(1, 2000);
             show('go', 3000);
             preparationTimersRef.current.push(
-                setTimeout(() => {
+                setTimeout(async () => {
                     const current = sessionRef.current;
-                    if (current && current.timeLeft > 0) {
-                        const running = { ...current, isPaused: false };
+                    if (!current || current.timeLeft <= 0) {
+                        setPreparationStep(null);
+                        preparationTimersRef.current = [];
+                        return;
+                    }
+
+                    try {
+                        let accumulatedSeconds = current.accumulatedSeconds;
+                        if (resumeOnServer) {
+                            await pauseRequestRef.current;
+                            const response = await api.post(
+                                `/daily-quest/item/${current.itemId}/resume`
+                            );
+                            accumulatedSeconds =
+                                response.data?.result?.accumulatedSeconds ??
+                                accumulatedSeconds;
+                        }
+
+                        const running = {
+                            ...current,
+                            accumulatedSeconds,
+                            isPaused: false,
+                        };
                         sessionRef.current = running;
                         setSession(running);
                         saveSession(running);
+                        setQuestData(previous =>
+                            previous
+                                ? {
+                                    ...previous,
+                                    questItems: previous.questItems.map(item =>
+                                        item.id === current.itemId
+                                            ? {
+                                                ...item,
+                                                status: 'IN_PROGRESS',
+                                                accumulatedSeconds,
+                                            }
+                                            : item
+                                    ),
+                                }
+                                : previous
+                        );
+                    } catch (error: any) {
+                        setErrorMessage(
+                            error.response?.data?.message ||
+                            error.message ||
+                            t('dailyQuest.resumeFailed')
+                        );
                     }
                     setPreparationStep(null);
                     preparationTimersRef.current = [];
                 }, 3600)
             );
         },
-        [cancelPreparation, saveSession]
+        [cancelPreparation, saveSession, t]
     );
 
     const removeSession = useCallback((itemId: string) => {
@@ -302,25 +346,112 @@ export default function DailyQuestScreen() {
         fetchQuest();
     }, [fetchQuest]);
 
-    const pauseCurrentSession = useCallback(() => {
+    const pauseCurrentSession = useCallback(async () => {
         const current = sessionRef.current;
-        if (!current || current.isPaused) return;
+        if (!current || current.timeLeft === 0) return;
 
-        const paused = { ...current, isPaused: true };
+        const paused = current.isPaused
+            ? current
+            : { ...current, isPaused: true };
         sessionRef.current = paused;
         setSession(paused);
         saveSession(paused);
-    }, [saveSession]);
+
+        if (pauseRequestRef.current) {
+            try {
+                await pauseRequestRef.current;
+            } catch {
+                // The original request reports the synchronization error.
+            }
+            return;
+        }
+
+        try {
+            const pauseRequest = api.post(
+                `/daily-quest/item/${current.itemId}/pause`
+            );
+            pauseRequestRef.current = pauseRequest;
+            const response = await pauseRequest;
+            const serverAccumulated =
+                response.data?.result?.accumulatedSeconds ??
+                paused.accumulatedSeconds;
+
+            setSession(previous => {
+                if (!previous || previous.itemId !== current.itemId) {
+                    return previous;
+                }
+                const updated = {
+                    ...previous,
+                    accumulatedSeconds: serverAccumulated,
+                    isPaused: true,
+                };
+                sessionRef.current = updated;
+                saveSession(updated);
+                return updated;
+            });
+            setQuestData(previous =>
+                previous
+                    ? {
+                        ...previous,
+                        questItems: previous.questItems.map(item =>
+                            item.id === current.itemId
+                                ? {
+                                    ...item,
+                                    status: 'PAUSED',
+                                    accumulatedSeconds: serverAccumulated,
+                                }
+                                : item
+                        ),
+                    }
+                    : previous
+            );
+        } catch (error: any) {
+            const responseCode = error.response?.data?.code;
+            const staleSessionCodes = [2002, 2004, 2005, 2012];
+
+            if (staleSessionCodes.includes(responseCode)) {
+                removeSession(current.itemId);
+                sessionRef.current = null;
+                setSession(previous =>
+                    previous?.itemId === current.itemId ? null : previous
+                );
+                void fetchQuest();
+            } else if (error.response?.status !== 401) {
+                console.log('Pause workout error:', {
+                    status: error.response?.status,
+                    code: responseCode,
+                    message: error.response?.data?.message || error.message,
+                });
+                if (workoutItemRef.current?.id === current.itemId) {
+                    setErrorMessage(
+                        error.response?.data?.message ||
+                        error.message ||
+                        t('dailyQuest.pauseFailed')
+                    );
+                }
+            }
+        } finally {
+            pauseRequestRef.current = null;
+        }
+    }, [fetchQuest, removeSession, saveSession, t]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextState => {
             if (nextState !== 'active') {
                 cancelPreparation();
-                pauseCurrentSession();
+                void pauseCurrentSession();
             }
         });
         return () => subscription.remove();
     }, [cancelPreparation, pauseCurrentSession]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            cancelPreparation();
+            void pauseCurrentSession();
+        });
+        return unsubscribe;
+    }, [cancelPreparation, navigation, pauseCurrentSession]);
 
     const syncProgress = useCallback(
         async (current: ActiveQuestSession): Promise<number | null> => {
@@ -545,7 +676,11 @@ export default function DailyQuestScreen() {
             }
         }
 
-        if (item.status === 'IN_PROGRESS' || serverAccumulated > 0) {
+        if (
+            item.status === 'IN_PROGRESS' ||
+            item.status === 'PAUSED' ||
+            serverAccumulated > 0
+        ) {
             const secondsPerSet = Math.max(1, item.targetReps * 3);
             const restSeconds = 60;
             const calculatedRequired =
@@ -576,10 +711,9 @@ export default function DailyQuestScreen() {
 
     const closeWorkout = () => {
         cancelPreparation();
-        pauseCurrentSession();
         setWorkoutItem(null);
         setErrorMessage(null);
-        void fetchQuest();
+        void pauseCurrentSession().finally(fetchQuest);
     };
 
     const startWorkout = async () => {
@@ -660,7 +794,7 @@ export default function DailyQuestScreen() {
         if (!workoutItem || actionLoading) return;
 
         const wasRunning = Boolean(sessionRef.current && !sessionRef.current.isPaused);
-        pauseCurrentSession();
+        void pauseCurrentSession();
         let shouldResume = wasRunning;
 
         const resumeAfterCancel = () => {
@@ -668,7 +802,7 @@ export default function DailyQuestScreen() {
             if (!shouldResume || !current || current.timeLeft === 0) return;
 
             shouldResume = false;
-            beginPreparation(current);
+            beginPreparation(current, true);
         };
 
         Alert.alert(
@@ -876,6 +1010,7 @@ export default function DailyQuestScreen() {
                         !item.completed &&
                         (
                             item.status === 'IN_PROGRESS' ||
+                            item.status === 'PAUSED' ||
                             (item.accumulatedSeconds ?? 0) > 0 ||
                             session?.itemId === item.id
                         );
@@ -1469,16 +1604,10 @@ export default function DailyQuestScreen() {
                                                     style={styles.controlButton}
                                                     onPress={() => {
                                                         if (session.isPaused) {
-                                                            beginPreparation(session);
+                                                            beginPreparation(session, true);
                                                             return;
                                                         }
-                                                        const updated = {
-                                                            ...session,
-                                                            isPaused: true,
-                                                        };
-                                                        sessionRef.current = updated;
-                                                        setSession(updated);
-                                                        saveSession(updated);
+                                                        void pauseCurrentSession();
                                                     }}
                                                 >
                                                     <Feather
