@@ -57,29 +57,49 @@ export default function LoginScreen({ navigation }: Props) {
             if (token) {
                 await AsyncStorage.setItem('token', token);
 
-                try {
-                    const settings = await getMySettings();
-                    const language = toAppLanguage(settings.language);
-
-                    await i18n.changeLanguage(language);
-                    setThemePreference(settings.theme);
-
-                    await AsyncStorage.setItem(
-                        'shadow_system_settings',
-                        JSON.stringify(settings)
-                    );
-                } catch (settingsError) {
-                    console.log('Load user settings error:', settingsError);
-                }
-
                 navigation.replace('MainApp', {
                     screen: 'DailyQuest',
                 });
+
+                void (async () => {
+                    try {
+                        const settings = await getMySettings();
+                        const language = toAppLanguage(settings.language);
+
+                        await i18n.changeLanguage(language);
+                        setThemePreference(settings.theme);
+
+                        await AsyncStorage.setItem(
+                            'shadow_system_settings',
+                            JSON.stringify(settings)
+                        );
+                    } catch (settingsError) {
+                        console.log('Load user settings error:', settingsError);
+                    }
+                })();
             } else {
                 Alert.alert(t('common.error'), t('auth.tokenNotFound'));
             }
         } catch (error: any) {
-            const msg = error.response?.data?.message || t('auth.loginFailed');
+            const status = error.response?.status;
+            const code = error.code;
+            const technicalDetails = [
+                status ? `HTTP ${status}` : null,
+                code,
+                error.message,
+            ]
+                .filter(Boolean)
+                .join(' · ');
+            const msg =
+                error.response?.data?.message ||
+                technicalDetails ||
+                t('auth.loginFailed');
+
+            console.error('Login error:', {
+                status,
+                code,
+                message: error.message,
+            });
             Alert.alert(t('common.error'), msg);
         } finally {
             setLoading(false);
