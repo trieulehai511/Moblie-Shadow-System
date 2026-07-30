@@ -67,6 +67,7 @@ const unwrapList = (data: any): Exercise[] => {
 
 export default function ExerciseScreen() {
   const {playSelectConfirm} = useSoundEffects();
+  const {playError} = useSoundEffects();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -97,6 +98,7 @@ export default function ExerciseScreen() {
       setSelectedIds(new Set(selected.map(item => item.id)));
       setMode(selected.length ? 'custom' : 'all');
     } catch (requestError: any) {
+      playError();
       setError(
         requestError.response?.data?.message ||
         requestError.message ||
@@ -147,6 +149,7 @@ export default function ExerciseScreen() {
   const save = async () => {
     if (saving) return;
     if (mode === 'custom' && invalidCategories.length) {
+      playError();
       Alert.alert(
         t('exercise.rejectedTitle'),
         t('exercise.minimumWarning', {
@@ -166,6 +169,7 @@ export default function ExerciseScreen() {
       playSelectConfirm();
       Alert.alert(t('common.success'), t(`exercise.saved.${mode}`));
     } catch (requestError: any) {
+      playError();
       Alert.alert(
         t('common.error'),
         requestError.response?.data?.message ||
@@ -259,6 +263,7 @@ export default function ExerciseScreen() {
         t('exercise.create.success', { name: created.name })
       );
     } catch (requestError: any) {
+      playError();
       Alert.alert(
         t('common.error'),
         requestError.response?.data?.message ||
