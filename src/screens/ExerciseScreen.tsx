@@ -26,7 +26,7 @@ import {
   themeColor,
   useAppTheme,
 } from '../theme/ThemeContext';
-import {useSoundEffects} from '../hooks/useSoundEffects';
+import { useFeedback } from '../hooks/useFeedback';
 
 type SelectionMode = 'all' | 'custom';
 type NewExercise = {
@@ -66,9 +66,11 @@ const unwrapList = (data: any): Exercise[] => {
 };
 
 export default function ExerciseScreen() {
-  const {playSelectConfirm} = useSoundEffects();
-  const {playError} = useSoundEffects();
-  const {playCancel} = useSoundEffects();
+  const {
+    playSelectConfirm,
+    playError,
+    playCancel,
+  } = useFeedback();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -878,7 +880,3 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   createSubmitText: { color: colors.contrastText, fontSize: 12, fontWeight: '800' },
 });
-function playCancel() {
-  throw new Error('Function not implemented.');
-}
-

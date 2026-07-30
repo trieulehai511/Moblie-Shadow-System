@@ -39,7 +39,7 @@ import {
     themeColor,
     useAppTheme,
 } from '../theme/ThemeContext';
-import { useSoundEffects } from '../hooks/useSoundEffects';
+import { useFeedback } from '../hooks/useFeedback';
 
 type TokenPayload = {
     sub: string;
@@ -149,7 +149,7 @@ export default function DailyQuestScreen() {
         playCountdown5s,
         playSetComplete,
         playReward,
-    } = useSoundEffects();
+    } = useFeedback();
     const { t, i18n } = useTranslation();
     const { colors, mode } = useAppTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
