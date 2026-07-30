@@ -39,6 +39,7 @@ import {
     themeColor,
     useAppTheme,
 } from '../theme/ThemeContext';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 
 type TokenPayload = {
     sub: string;
@@ -75,10 +76,10 @@ const PACE_OPTIONS: Array<{
     title: string;
     subtitle: string;
 }> = [
-    { value: 'STRONG', icon: 'zap', title: 'STRONG', subtitle: 'Fast & Heavy' },
-    { value: 'AVERAGE', icon: 'activity', title: 'AVERAGE', subtitle: 'Moderate' },
-    { value: 'WEAK', icon: 'feather', title: 'WEAK', subtitle: 'Light' },
-];
+        { value: 'STRONG', icon: 'zap', title: 'STRONG', subtitle: 'Fast & Heavy' },
+        { value: 'AVERAGE', icon: 'activity', title: 'AVERAGE', subtitle: 'Moderate' },
+        { value: 'WEAK', icon: 'feather', title: 'WEAK', subtitle: 'Light' },
+    ];
 
 const unwrapQuest = (data: any): DailyQuestResponse | null =>
     (data?.result ?? data ?? null) as DailyQuestResponse | null;
@@ -140,6 +141,15 @@ const addAttributeGains = (
     ) as AttributeValues;
 
 export default function DailyQuestScreen() {
+    const {
+        playCancel,
+        playError,
+        playSelectConfirm,
+        playGenerateQuest,
+        playCountdown5s,
+        playSetComplete,
+        playReward,
+    } = useSoundEffects();
     const { t, i18n } = useTranslation();
     const { colors, mode } = useAppTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
@@ -168,6 +178,12 @@ export default function DailyQuestScreen() {
     const rewardOpacity = useRef(new Animated.Value(0)).current;
     const rewardScale = useRef(new Animated.Value(0.94)).current;
     const preparationTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const countdownPhaseRef = useRef<string | null>(null);
+    const previousTimerRef = useRef<{
+        itemId: string;
+        phase: ActiveQuestSession['phase'];
+        timeLeft: number;
+    } | null>(null);
 
     const cancelPreparation = useCallback(() => {
         preparationTimersRef.current.forEach(clearTimeout);
@@ -176,6 +192,67 @@ export default function DailyQuestScreen() {
     }, []);
 
     useEffect(() => cancelPreparation, [cancelPreparation]);
+
+    useEffect(() => {
+        if (!session) {
+            previousTimerRef.current = null;
+            return;
+        }
+
+        const previous = previousTimerRef.current;
+
+        const sameWorkout =
+            previous?.itemId === session.itemId;
+
+        const movedFromTrainingToRest =
+            sameWorkout &&
+            previous?.phase === 'training' &&
+            session.phase === 'rest';
+
+        const finishedFinalTrainingSet =
+            sameWorkout &&
+            previous?.phase === 'training' &&
+            session.phase === 'training' &&
+            previous.timeLeft > 0 &&
+            session.timeLeft === 0;
+
+        if (
+            movedFromTrainingToRest ||
+            finishedFinalTrainingSet
+        ) {
+            playSetComplete();
+        }
+
+        previousTimerRef.current = {
+            itemId: session.itemId,
+            phase: session.phase,
+            timeLeft: session.timeLeft,
+        };
+    }, [
+        session?.itemId,
+        session?.phase,
+        session?.timeLeft,
+        playSetComplete,
+    ]);
+
+    useEffect(() => {
+        if (!session || session.isPaused) return;
+        if (session.timeLeft !== 4) return;
+
+        const phaseKey =
+            `${session.currentSet}-${session.phase}`;
+
+        if (countdownPhaseRef.current === phaseKey) return;
+
+        countdownPhaseRef.current = phaseKey;
+        playCountdown5s();
+    }, [
+        session?.currentSet,
+        session?.phase,
+        session?.timeLeft,
+        session?.isPaused,
+        playCountdown5s,
+    ]);
 
     useEffect(() => {
         if (!completionReward) return;
@@ -235,6 +312,7 @@ export default function DailyQuestScreen() {
     const beginPreparation = useCallback(
         (targetSession: ActiveQuestSession, resumeOnServer = false) => {
             cancelPreparation();
+            playCountdown5s(1);
 
             const paused = { ...targetSession, isPaused: true };
             sessionRef.current = paused;
@@ -296,6 +374,7 @@ export default function DailyQuestScreen() {
                                 : previous
                         );
                     } catch (error: any) {
+                        playError();
                         setErrorMessage(
                             error.response?.data?.message ||
                             error.message ||
@@ -331,6 +410,7 @@ export default function DailyQuestScreen() {
             setQuestData(quest ? sortQuest(quest) : null);
         } catch (error: any) {
             console.log('Fetch daily quest error:', error);
+            playError();
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
@@ -481,6 +561,7 @@ export default function DailyQuestScreen() {
                 return serverAccumulated;
             } catch (error: any) {
                 console.log('Progress sync error:', error);
+                playError();
                 setSession(previous => {
                     if (!previous || previous.itemId !== current.itemId) {
                         return previous;
@@ -618,6 +699,7 @@ export default function DailyQuestScreen() {
         setGenerating(true);
         setErrorMessage(null);
         try {
+            playGenerateQuest();
             const response = await api.post(
                 `/daily-quest/hunter/${hunterId}/generate`
             );
@@ -625,6 +707,7 @@ export default function DailyQuestScreen() {
             if (!quest) throw new Error(t('dailyQuest.noQuestData'));
             setQuestData(sortQuest(quest));
         } catch (error: any) {
+            playError();
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
@@ -636,6 +719,7 @@ export default function DailyQuestScreen() {
     };
 
     const openWorkout = async (item: QuestItem) => {
+        playSelectConfirm();
         setWorkoutItem(item);
         setErrorMessage(null);
         pingTickRef.current = 0;
@@ -672,6 +756,7 @@ export default function DailyQuestScreen() {
                 );
                 return;
             } catch {
+                playCancel();
                 await AsyncStorage.removeItem(`${SESSION_PREFIX}${item.id}`);
             }
         }
@@ -711,6 +796,7 @@ export default function DailyQuestScreen() {
 
     const closeWorkout = () => {
         cancelPreparation();
+        playCancel();
         setWorkoutItem(null);
         setErrorMessage(null);
         void pauseCurrentSession().finally(fetchQuest);
@@ -759,6 +845,7 @@ export default function DailyQuestScreen() {
             );
             beginPreparation(nextSession);
         } catch (error: any) {
+            playError();
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
@@ -781,6 +868,7 @@ export default function DailyQuestScreen() {
             setWorkoutItem(null);
             await fetchQuest();
         } catch (error: any) {
+            playError();
             setErrorMessage(
                 error.response?.data?.message ||
                 t('dailyQuest.resetFailed')
@@ -798,6 +886,7 @@ export default function DailyQuestScreen() {
         let shouldResume = wasRunning;
 
         const resumeAfterCancel = () => {
+            playCancel();
             const current = sessionRef.current;
             if (!shouldResume || !current || current.timeLeft === 0) return;
 
@@ -819,6 +908,7 @@ export default function DailyQuestScreen() {
                     style: 'destructive',
                     onPress: () => {
                         shouldResume = false;
+                        playSelectConfirm();
                         void resetWorkout();
                     },
                 },
@@ -835,7 +925,7 @@ export default function DailyQuestScreen() {
         if (
             !hasFinishedWorkoutTimer(sessionRef.current, workoutItem) ||
             (sessionRef.current?.accumulatedSeconds ?? 0) <
-                (sessionRef.current?.totalRequiredSeconds ?? Number.MAX_SAFE_INTEGER)
+            (sessionRef.current?.totalRequiredSeconds ?? Number.MAX_SAFE_INTEGER)
         ) {
             Alert.alert(
                 t('common.notice'),
@@ -861,6 +951,7 @@ export default function DailyQuestScreen() {
                     const profileBefore = await api.get('/auth/me');
                     attributesBefore = getAttributes(profileBefore.data);
                 } catch (profileError) {
+                    playError();
                     console.log('Read attributes before completion error:', profileError);
                 }
             }
@@ -928,6 +1019,7 @@ export default function DailyQuestScreen() {
             }
 
             if (questJustCleared) {
+                playReward();
                 setCompletionReward({
                     message:
                         t(COMPLETION_MESSAGE_KEYS[
@@ -942,6 +1034,7 @@ export default function DailyQuestScreen() {
                 Alert.alert(t('dailyQuest.exerciseComplete'), t('dailyQuest.progressRecorded'));
             }
         } catch (error: any) {
+            playError();
             setErrorMessage(
                 error.response?.data?.message ||
                 error.message ||
@@ -1016,96 +1109,99 @@ export default function DailyQuestScreen() {
                         );
 
                     return (
-                    <View
-                        key={item.id}
-                        style={[
-                            styles.questItem,
-                            item.completed
-                                ? styles.questItemComplete
-                                : bonus
-                                    ? styles.questItemBonus
-                                    : styles.questItemPending,
-                            inProgress && styles.questItemInProgress,
-                        ]}
-                    >
-                        <View style={styles.questItemMain}>
-                            <View
-                                style={[
-                                    styles.stateIcon,
-                                    item.completed && styles.stateIconComplete,
-                                    inProgress && styles.stateIconInProgress,
-                                ]}
-                            >
-                                {item.completed ? (
-                                    <Feather name="check" size={13} color={themeColor(colors, '#82b89d')} />
-                                ) : inProgress ? (
-                                    <Feather name="play" size={10} color={colors.accent} />
-                                ) : (
-                                    <View
+                        <View
+                            key={item.id}
+                            style={[
+                                styles.questItem,
+                                item.completed
+                                    ? styles.questItemComplete
+                                    : bonus
+                                        ? styles.questItemBonus
+                                        : styles.questItemPending,
+                                inProgress && styles.questItemInProgress,
+                            ]}
+                        >
+                            <View style={styles.questItemMain}>
+                                <View
+                                    style={[
+                                        styles.stateIcon,
+                                        item.completed && styles.stateIconComplete,
+                                        inProgress && styles.stateIconInProgress,
+                                    ]}
+                                >
+                                    {item.completed ? (
+                                        <Feather name="check" size={13} color={themeColor(colors, '#82b89d')} />
+                                    ) : inProgress ? (
+                                        <Feather name="play" size={10} color={colors.accent} />
+                                    ) : (
+                                        <View
+                                            style={[
+                                                styles.pendingDot,
+                                                bonus && styles.bonusDot,
+                                            ]}
+                                        />
+                                    )}
+                                </View>
+
+                                <View style={styles.exerciseTextBlock}>
+                                    <Text
                                         style={[
-                                            styles.pendingDot,
-                                            bonus && styles.bonusDot,
+                                            styles.exerciseName,
+                                            item.completed && styles.completedText,
                                         ]}
-                                    />
+                                    >
+                                        {item.exerciseName}
+                                    </Text>
+                                    <Text style={styles.exerciseTarget}>
+                                        {item.targetSets} SETS × {item.targetReps} REPS
+                                    </Text>
+                                    {inProgress ? (
+                                        <Text style={styles.inProgressLabel}>
+                                            {t('dailyQuest.inProgress').toUpperCase()}
+                                        </Text>
+                                    ) : null}
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.infoButton}
+                                    onPress={() => {
+                                        playSelectConfirm();
+                                        setDetailItem(item)
+                                    }}
+                                >
+                                    <Feather name="info" size={16} color={themeColor(colors, '#717680')} />
+                                </TouchableOpacity>
+
+                                {item.completed ? (
+                                    <View style={styles.doneButton}>
+                                        <Feather
+                                            name="check-circle"
+                                            size={14}
+                                            color={themeColor(colors, '#82b89d')}
+                                        />
+                                        <Text style={styles.doneButtonText}>{t('dailyQuest.done').toUpperCase()}</Text>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.trainButton,
+                                            inProgress && styles.resumeButton,
+                                        ]}
+                                        activeOpacity={0.75}
+                                        onPress={() => void openWorkout(item)}
+                                    >
+                                        <Text style={[
+                                            styles.trainButtonText,
+                                            inProgress && styles.resumeButtonText,
+                                        ]}>
+                                            {inProgress
+                                                ? t('dailyQuest.resume').toUpperCase()
+                                                : t('dailyQuest.train').toUpperCase()}
+                                        </Text>
+                                    </TouchableOpacity>
                                 )}
                             </View>
-
-                            <View style={styles.exerciseTextBlock}>
-                                <Text
-                                    style={[
-                                        styles.exerciseName,
-                                        item.completed && styles.completedText,
-                                    ]}
-                                >
-                                    {item.exerciseName}
-                                </Text>
-                                <Text style={styles.exerciseTarget}>
-                                    {item.targetSets} SETS × {item.targetReps} REPS
-                                </Text>
-                                {inProgress ? (
-                                    <Text style={styles.inProgressLabel}>
-                                        {t('dailyQuest.inProgress').toUpperCase()}
-                                    </Text>
-                                ) : null}
-                            </View>
-
-                            <TouchableOpacity
-                                style={styles.infoButton}
-                                onPress={() => setDetailItem(item)}
-                            >
-                                <Feather name="info" size={16} color={themeColor(colors, '#717680')} />
-                            </TouchableOpacity>
-
-                            {item.completed ? (
-                                <View style={styles.doneButton}>
-                                    <Feather
-                                        name="check-circle"
-                                        size={14}
-                                        color={themeColor(colors, '#82b89d')}
-                                    />
-                                    <Text style={styles.doneButtonText}>{t('dailyQuest.done').toUpperCase()}</Text>
-                                </View>
-                            ) : (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.trainButton,
-                                        inProgress && styles.resumeButton,
-                                    ]}
-                                    activeOpacity={0.75}
-                                    onPress={() => void openWorkout(item)}
-                                >
-                                    <Text style={[
-                                        styles.trainButtonText,
-                                        inProgress && styles.resumeButtonText,
-                                    ]}>
-                                        {inProgress
-                                            ? t('dailyQuest.resume').toUpperCase()
-                                            : t('dailyQuest.train').toUpperCase()}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
                         </View>
-                    </View>
                     );
                 })}
             </View>
@@ -1468,10 +1564,12 @@ export default function DailyQuestScreen() {
                                                 style={[
                                                     styles.paceOption,
                                                     selectedPace === option.value &&
-                                                        styles.paceOptionActive,
+                                                    styles.paceOptionActive,
                                                 ]}
-                                                onPress={() =>
-                                                    setSelectedPace(option.value)
+                                                onPress={() => {
+                                                    playSelectConfirm();
+                                                    setSelectedPace(option.value);
+                                                }
                                                 }
                                             >
                                                 <Feather
@@ -1535,7 +1633,7 @@ export default function DailyQuestScreen() {
                                                 style={[
                                                     styles.phaseBadge,
                                                     session.phase === 'rest' &&
-                                                        styles.restBadge,
+                                                    styles.restBadge,
                                                 ]}
                                             >
                                                 {session.phase === 'training'
@@ -1552,14 +1650,14 @@ export default function DailyQuestScreen() {
                                             style={[
                                                 styles.timerCircle,
                                                 session.phase === 'rest' &&
-                                                    styles.timerCircleRest,
+                                                styles.timerCircleRest,
                                             ]}
                                         >
                                             <Text
                                                 style={[
                                                     styles.timerValue,
                                                     session.phase === 'rest' &&
-                                                        styles.timerValueRest,
+                                                    styles.timerValueRest,
                                                 ]}
                                             >
                                                 {formatTime(session.timeLeft)}
@@ -1568,7 +1666,7 @@ export default function DailyQuestScreen() {
                                                 style={[
                                                     styles.timerLabel,
                                                     session.phase === 'rest' &&
-                                                        styles.timerLabelRest,
+                                                    styles.timerLabelRest,
                                                 ]}
                                             >
                                                 {session.isFinishing
@@ -1580,7 +1678,7 @@ export default function DailyQuestScreen() {
                                         </View>
 
                                         {session.timeLeft === 0 &&
-                                        session.accumulatedSeconds <
+                                            session.accumulatedSeconds <
                                             session.totalRequiredSeconds ? (
                                             <View style={styles.savingStatus}>
                                                 <ActivityIndicator
@@ -1636,7 +1734,7 @@ export default function DailyQuestScreen() {
                                                     styles.controlButton,
                                                     styles.resetButton,
                                                     session.timeLeft === 0 &&
-                                                        styles.resetButtonCompact,
+                                                    styles.resetButtonCompact,
                                                 ]}
                                                 disabled={actionLoading}
                                                 onPress={confirmResetWorkout}
@@ -1656,7 +1754,7 @@ export default function DailyQuestScreen() {
                                             session,
                                             workoutItem
                                         ) &&
-                                        session.accumulatedSeconds >=
+                                            session.accumulatedSeconds >=
                                             session.totalRequiredSeconds ? (
                                             <TouchableOpacity
                                                 style={styles.completeButton}
@@ -1711,7 +1809,7 @@ export default function DailyQuestScreen() {
                                     style={[
                                         styles.preparationValue,
                                         preparationStep === 'go' &&
-                                            styles.preparationGoValue,
+                                        styles.preparationGoValue,
                                     ]}
                                 >
                                     {preparationStep === 'go'

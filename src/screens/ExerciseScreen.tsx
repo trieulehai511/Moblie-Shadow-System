@@ -68,6 +68,7 @@ const unwrapList = (data: any): Exercise[] => {
 export default function ExerciseScreen() {
   const {playSelectConfirm} = useSoundEffects();
   const {playError} = useSoundEffects();
+  const {playCancel} = useSoundEffects();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -207,6 +208,7 @@ export default function ExerciseScreen() {
 
   const closeCreate = () => {
     if (creating) return;
+    playCancel();
     setShowCreate(false);
     setNewExercise(EMPTY_EXERCISE);
     setNewImage(null);
@@ -876,3 +878,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   createSubmitText: { color: colors.contrastText, fontSize: 12, fontWeight: '800' },
 });
+function playCancel() {
+  throw new Error('Function not implemented.');
+}
+
