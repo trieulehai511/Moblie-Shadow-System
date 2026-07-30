@@ -14,6 +14,7 @@ import {
     useAppTheme,
 } from '../theme/ThemeContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
+import { BackgroundMusic } from '../components/BackgroundMusic';
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -51,29 +52,31 @@ function MainTabNavigator() {
     const { hapticSelect } = useHapticFeedback();
     const styles = useMemo(() => createStyles(colors), [colors]);
     return (
-        <Tab.Navigator
-            initialRouteName="DailyQuest"
-            screenListeners={{
-                tabPress: () => hapticSelect(),
-            }}
-            screenOptions={{
-                headerShown: false,
-                tabBarActiveTintColor: colors.text,
-                tabBarInactiveTintColor: colors.mutedText,
-                tabBarStyle: {
-                    backgroundColor: colors.surface,
-                    borderTopColor: colors.border,
-                    borderTopWidth: 1,
-                    height: 60,
-                    paddingBottom: 8,
-                    paddingTop: 8,
-                },
-                tabBarLabelStyle: {
-                    fontSize: 11,
-                    fontWeight: '600',
-                },
-            }}
-        >
+        <>
+            <BackgroundMusic />
+            <Tab.Navigator
+                initialRouteName="DailyQuest"
+                screenListeners={{
+                    tabPress: () => hapticSelect(),
+                }}
+                screenOptions={{
+                    headerShown: false,
+                    tabBarActiveTintColor: colors.text,
+                    tabBarInactiveTintColor: colors.mutedText,
+                    tabBarStyle: {
+                        backgroundColor: colors.surface,
+                        borderTopColor: colors.border,
+                        borderTopWidth: 1,
+                        height: 60,
+                        paddingBottom: 8,
+                        paddingTop: 8,
+                    },
+                    tabBarLabelStyle: {
+                        fontSize: 11,
+                        fontWeight: '600',
+                    },
+                }}
+            >
             <Tab.Screen
                 name="DailyQuest"
                 component={DailyQuestScreen}
@@ -160,7 +163,8 @@ function MainTabNavigator() {
                     ),
                 }}
             />
-        </Tab.Navigator>
+            </Tab.Navigator>
+        </>
     )
 }
 

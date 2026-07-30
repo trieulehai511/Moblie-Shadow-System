@@ -794,6 +794,11 @@ export default function DailyQuestScreen() {
         setSession(null);
     };
 
+    const closeDetail = () => {
+        playCancel();
+        setDetailItem(null);
+    };
+
     const closeWorkout = () => {
         cancelPreparation();
         playCancel();
@@ -1420,7 +1425,7 @@ export default function DailyQuestScreen() {
                 visible={Boolean(detailItem)}
                 transparent
                 animationType="fade"
-                onRequestClose={() => setDetailItem(null)}
+                onRequestClose={closeDetail}
             >
                 <View style={styles.modalOverlay}>
                     <SafeAreaView style={styles.modalSafeArea}>
@@ -1428,7 +1433,7 @@ export default function DailyQuestScreen() {
                             <View style={styles.modalCard}>
                                 <TouchableOpacity
                                     style={styles.closeButton}
-                                    onPress={() => setDetailItem(null)}
+                                    onPress={closeDetail}
                                 >
                                     <Feather name="x" size={22} color={themeColor(colors, '#c4c7ce')} />
                                 </TouchableOpacity>
