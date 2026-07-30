@@ -26,6 +26,7 @@ import {
   themeColor,
   useAppTheme,
 } from '../theme/ThemeContext';
+import {useSoundEffects} from '../hooks/useSoundEffects';
 
 type SelectionMode = 'all' | 'custom';
 type NewExercise = {
@@ -65,6 +66,7 @@ const unwrapList = (data: any): Exercise[] => {
 };
 
 export default function ExerciseScreen() {
+  const {playSelectConfirm} = useSoundEffects();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -134,6 +136,7 @@ export default function ExerciseScreen() {
   );
 
   const toggleExercise = (id: string) => {
+    playSelectConfirm();
     setSelectedIds(previous => {
       const next = new Set(previous);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -160,6 +163,7 @@ export default function ExerciseScreen() {
         '/exercise/select',
         mode === 'all' ? [] : Array.from(selectedIds)
       );
+      playSelectConfirm();
       Alert.alert(t('common.success'), t(`exercise.saved.${mode}`));
     } catch (requestError: any) {
       Alert.alert(
