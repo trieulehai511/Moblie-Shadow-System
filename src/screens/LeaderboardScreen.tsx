@@ -8,9 +8,11 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity,
     View,
 } from 'react-native';
+import {
+    HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import {

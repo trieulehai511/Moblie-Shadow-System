@@ -5,9 +5,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import {

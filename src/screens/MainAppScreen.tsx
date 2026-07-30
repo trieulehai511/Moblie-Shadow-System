@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import {
+  HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';

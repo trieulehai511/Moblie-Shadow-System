@@ -13,6 +13,7 @@ import {
     themeColor,
     useAppTheme,
 } from '../theme/ThemeContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -47,10 +48,14 @@ function TabIcon({
 
 function MainTabNavigator() {
     const { colors } = useAppTheme();
+    const { hapticSelect } = useHapticFeedback();
     const styles = useMemo(() => createStyles(colors), [colors]);
     return (
         <Tab.Navigator
             initialRouteName="DailyQuest"
+            screenListeners={{
+                tabPress: () => hapticSelect(),
+            }}
             screenOptions={{
                 headerShown: false,
                 tabBarActiveTintColor: colors.text,

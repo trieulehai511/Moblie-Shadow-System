@@ -7,13 +7,15 @@ import React, {
 } from 'react';
 import {
     ActivityIndicator,
-    Pressable,
     RefreshControl,
     SectionList,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
+import {
+    HapticPressable as Pressable,
+} from '../components/HapticPressables';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';

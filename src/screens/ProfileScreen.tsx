@@ -13,9 +13,11 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity,
     View,
 } from 'react-native';
+import {
+    HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';

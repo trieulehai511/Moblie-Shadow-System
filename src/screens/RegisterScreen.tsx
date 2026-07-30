@@ -1,6 +1,9 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, TextInput, Alert, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, TextInput, Alert, ActivityIndicator, Platform } from 'react-native';
+import {
+  HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import {

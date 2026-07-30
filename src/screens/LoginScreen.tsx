@@ -4,7 +4,6 @@ import {
     View,
     Text,
     TextInput,
-    TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
     Alert,
@@ -12,6 +11,9 @@ import {
     Platform,
     ScrollView,
 } from 'react-native';
+import {
+    HapticTouchableOpacity as TouchableOpacity,
+} from '../components/HapticPressables';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
