@@ -30,6 +30,7 @@ import {
     themeColor,
     useAppTheme,
 } from '../theme/ThemeContext';
+import { registerCurrentDevice } from '../services/notificationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -56,6 +57,13 @@ export default function LoginScreen({ navigation }: Props) {
 
             if (token) {
                 await AsyncStorage.setItem('token', token);
+
+                void registerCurrentDevice().catch((notificationError) => {
+                    console.warn(
+                        'Register notification device failed:',
+                        notificationError
+                    );
+                });
 
                 navigation.replace('MainApp', {
                     screen: 'DailyQuest',

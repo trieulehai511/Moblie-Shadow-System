@@ -46,6 +46,7 @@ import {
     updateMySettings,
 } from '../services/settingService';
 import { updateMyProfile } from '../services/profileService';
+import { removeCurrentDevice } from '../services/notificationService';
 import {
     ThemeColors,
     themeColor,
@@ -374,6 +375,14 @@ export default function ProfileScreen({ navigation }: any) {
                         try {
                             const token = await AsyncStorage.getItem('token');
                             if (token) {
+                                try {
+                                    await removeCurrentDevice();
+                                } catch (notificationError) {
+                                    console.warn(
+                                        'Remove notification device failed:',
+                                        notificationError
+                                    );
+                                }
                                 await api.post('/auth/logout', { token });
                             }
                         } catch (error) {

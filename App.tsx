@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './src/i18n';
 
 import { StatusBar } from 'expo-status-bar';
@@ -11,6 +11,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import { ThemeProvider, useAppTheme } from './src/theme/ThemeContext';
 import HunterProfileScreen from './src/screens/HunterProfileScreen';
+import { listenForFcmTokenChanges } from './src/services/notificationService';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +34,20 @@ function AppContent() {
       heavy: { fontFamily: 'System', fontWeight: '800' },
     },
   };
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    void listenForFcmTokenChanges()
+      .then((listener) => {
+        unsubscribe = listener;
+      })
+      .catch((error) => {
+        console.warn('FCM token listener is unavailable:', error);
+      });
+
+    return () => unsubscribe?.();
+  }, []);
 
   return (
     <NavigationContainer theme={navigationTheme}>

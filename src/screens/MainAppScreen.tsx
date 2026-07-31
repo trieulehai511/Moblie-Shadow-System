@@ -12,6 +12,7 @@ import {
   themeColor,
   useAppTheme,
 } from '../theme/ThemeContext';
+import { removeCurrentDevice } from '../services/notificationService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MainApp'>;
 
@@ -20,8 +21,14 @@ function MainAppScreen({ navigation }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('token');
-    navigation.replace('Login');
+    try {
+      await removeCurrentDevice();
+    } catch (error) {
+      console.warn('Remove notification device failed:', error);
+    } finally {
+      await AsyncStorage.removeItem('token');
+      navigation.replace('Login');
+    }
   };
 
   return (

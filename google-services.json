@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "991024529438",
+    "project_id": "shadow-system-0258",
+    "storage_bucket": "shadow-system-0258.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991024529438:android:fddcf0996ece9fb5b3ae0f",
+        "android_client_info": {
+          "package_name": "com.anonymous.ShadowSystemMobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd4ij4LQT8pX9r3wFA3ylSd11qp3-alyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
