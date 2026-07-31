@@ -15,9 +15,7 @@ if (!API_URL) {
 }
 
 const expoFetchAdapter: AxiosAdapter = async (config) => {
-    const baseURL = (config.baseURL || '').replace(/\/+$/, '');
-    const path = (config.url || '').replace(/^\/+/, '');
-    const url = `${baseURL}/${path}`;
+    const url = axios.getUri(config);
     const method = (config.method || 'get').toUpperCase();
     const timeoutMs = config.timeout || 10_000;
     const headers = config.headers?.toJSON() as Record<string, string>;
