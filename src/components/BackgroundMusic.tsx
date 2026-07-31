@@ -19,17 +19,25 @@ export function BackgroundMusic() {
         const subscription = AppState.addEventListener(
             'change',
             nextState => {
-                if (nextState === 'active') {
-                    player.play();
-                } else {
-                    player.pause();
+                try {
+                    if (nextState === 'active') {
+                        player.play();
+                    } else {
+                        player.pause();
+                    }
+                } catch (e) {
+                    console.warn('AudioPlayer error on app state change:', e);
                 }
             }
         );
 
         return () => {
             subscription.remove();
-            player.pause();
+            try {
+                player.pause();
+            } catch (e) {
+                console.warn('AudioPlayer error on cleanup:', e);
+            }
         };
     }, [player]);
 

@@ -51,9 +51,8 @@ export async function updateMyProfile(
         '/hunter/profile',
         formData,
         {
-            // Xóa application/json mặc định để Axios tự sinh multipart boundary.
             headers: {
-                'Content-Type': undefined,
+                'Content-Type': 'multipart/form-data',
             },
         }
     );

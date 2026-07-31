@@ -380,7 +380,8 @@ export default function ProfileScreen({ navigation }: any) {
                             console.log('Logout error:', error);
                         } finally {
                             await AsyncStorage.removeItem('token');
-                            navigation.getParent()?.reset({
+                            const nav = navigation.getParent() || navigation;
+                            nav.reset({
                                 index: 0,
                                 routes: [{ name: 'Login' }],
                             });
@@ -530,6 +531,7 @@ export default function ProfileScreen({ navigation }: any) {
             setSelectedSettingsSection(null);
             Alert.alert(t('common.success'), t('profile.updateSuccess'));
         } catch (error: any) {
+            console.error('Update profile error details:', error?.response || error);
             Alert.alert(
                 t('common.error'),
                 error.response?.data?.message || t('profile.updateFailed')

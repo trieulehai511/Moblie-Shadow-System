@@ -20,7 +20,11 @@ const expoFetchAdapter: AxiosAdapter = async (config) => {
     const timeoutMs = config.timeout || 10_000;
     const headers = config.headers?.toJSON() as Record<string, string>;
 
-    const request = expoFetch(url, {
+    // If sending FormData on React Native, expo/fetch does not support React Native's default FormDataPart object format ({uri, name, type}).
+    // Fall back to native fetch or standard XMLHttpRequest behavior for FormData.
+    const fetchFn = (config.data instanceof FormData) ? fetch : expoFetch;
+
+    const request = fetchFn(url, {
         method,
         headers,
         body:
@@ -40,7 +44,13 @@ const expoFetchAdapter: AxiosAdapter = async (config) => {
         }, timeoutMs);
     });
     const response = await Promise.race([request, timeout]);
-    const responseData = await response.text();
+    const responseDataText = await response.text();
+    let responseData = responseDataText;
+    try {
+        responseData = JSON.parse(responseDataText);
+    } catch {
+        // Keep raw text if not JSON
+    }
     const axiosResponse: AxiosResponse = {
         data: responseData,
         status: response.status,
