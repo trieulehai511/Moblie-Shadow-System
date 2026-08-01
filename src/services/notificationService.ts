@@ -89,3 +89,14 @@ export async function removeAllDevices(): Promise<void> {
     await api.delete('/notifications/devices/all');
     await AsyncStorage.removeItem(DEVICE_TOKEN_STORAGE_KEY);
 }
+
+export async function sendTestNotification(payload: {
+    token: string;
+    title: string;
+    body: string;
+    data?: Record<string, any>;
+}): Promise<string> {
+    const response = await api.post('/notifications/send', payload);
+    return response.data;
+}
+
